@@ -3,186 +3,343 @@ import supabase from '../config/db.js';
 import { create } from 'xmlbuilder2';
 
 export const orderFormCreate = async (jsonOrderData) => {
-    try {
-        // Validate input
-        // if (!order || !buyer || !seller || !delivery || !monetaryTotal || !orderLines || !additionalDocumentReference) {
-        //     throw createHttpError(400, 'Ensure all fields are filled.');
-        // }
+  try {
+    // Generate a unique order ID
+    const orderId = Math.floor(Math.random() * 1000000);
+    const xml = generateXML(jsonOrderData, orderId);
 
-        // Generate a unique order ID
-        const orderId = Math.floor(Math.random() * 1000000);
+    // Insert into the database
+    const { data, error } = await supabase
+      .from('order')
+      .insert([{ orderId: orderId, xml: xml}])
+      .select();
 
-        // Insert into the database
-        const { data, error } = await supabase
-            .from('orders')
-            .insert([{ orderId: orderId }])
-            .select();
-
-        // If there's an error with the insert
-        if (error) {
-            throw createHttpError(500, `Failed to insert order: ${error.message}`);
-        }
-
-        generateXML(jsonOrderData);
-        
-        return { orderId: data[0].orderId };  // Return the created order ID
-
-    } catch (error) {
-        console.error('Database Error:', error);
-        throw createHttpError(500, 'Failed to create order. Please try again.');
+    // If there's an error with the insert
+    if (error) {
+      throw createHttpError(500, `Failed to insert order: ${error.message}`);
     }
+    
+    return { orderId: data[0].orderId };
+
+  } catch (error) {
+    throw createHttpError(500, 'Failed to create order. Please try again.');
+  }
 };
 
-const generateXML = (jsonOrderData) => {
-    const jsonData = {
-        "order": {
-            "ID": "34",
-            "IssueDate": "2010-01-20",
-            "IssueTime": "12:30:00",
-            "Note": "Information text for the whole order",
-            "DocumentCurrencyCode": "SEK",
-            "AccountingCostCode": "Project123",
-            "ValidityEndDate": "2010-01-31",
-            "QuotationDocumentReferenceID": "QuoteID123",
-            "OrderDocumentReferenceID": "RejectedOrderID123",
-            "OriginatorDocumentReferenceID": "MAFO",
-            "ContractID": "34322",
-            "ContractType": "FrameworkAgreementID123"
-        },
-        "buyer": {
-            "EndpointID": "7300072311115",
-            "ID": "7300070011115",
-            "Name": "Johnssons byggvaror",
-            "PostalAddress": {
-                "StreetName": "Rådhusgatan",
-                "AdditionalStreetName": "2nd floor",
-                "BuildingNumber": "5",
-                "CityName": "Stockholm",
-                "PostalZone": "11000",
-                "CountrySubentity": "RegionX",
-                "CountryCode": "SE"
-            },
-            "TaxScheme": {
-                "RegistrationName": "Herra Johnssons byggvaror AS",
-                "CompanyID": "SE1234567801",
-                "TaxSchemeID": "VAT"
-            },
-            "Contact": {
-                "Telephone": "123456",
-                "Telefax": "123456",
-                "Email": "pelle@johnsson.se"
-            },
-            "Person": {
-                "FirstName": "Pelle",
-                "MiddleName": "X",
-                "FamilyName": "Svensson",
-                "JobTitle": "Boss"
-            }
-        },
-        "monetaryTotal": {
-            "PayableAmount": {
-                "currencyID": "SEK",
-                "value": 6225
-            }
-        },
-        "order_lines": [
-            {
-                "id": "1",
-                "note": "Handle with care",
-                "quantity": 10,
-                "unit_code": "EA",
-                "line_extension_amount": 250.00,
-                "currency": "SEK",
-                "price": {
-                    "amount": 25.00,
-                    "base_quantity": 1
-                },
-                "item": {
-                    "name": "Wooden Plank",
-                    "seller_item_id": "PLANK123",
-                    "tax": {
-                        "id": "S",
-                        "percent": 25,
-                        "scheme_id": "VAT"
-                    }
-                }
-            }
-        ]
-    };
-                 
-    const xml = create({ version: '1.0', encoding: 'UTF-8' })
-        .ele('Order', { xmlns: 'urn:oasis:names:specification:ubl:schema:xsd:Order-2' })
-            .ele('cbc:ID').txt(jsonData.order.ID).up()
-            .ele('cbc:IssueDate').txt(jsonData.order.IssueDate).up()
-            .ele('cbc:IssueTime').txt(jsonData.order.IssueTime).up()
-            .ele('cbc:Note').txt(jsonData.order.Note).up()
-            .ele('cbc:DocumentCurrencyCode').txt(jsonData.order.DocumentCurrencyCode).up()
-            .ele('cbc:AccountingCostCode').txt(jsonData.order.AccountingCostCode).up()
-            .ele('cbc:ValidityEndDate').txt(jsonData.order.ValidityEndDate).up()
-            .ele('cac:BuyerCustomerParty')
-                .ele('cbc:EndpointID').txt(jsonData.buyer.EndpointID).up()
-                .ele('cbc:ID').txt(jsonData.buyer.ID).up()
-                .ele('cbc:Name').txt(jsonData.buyer.Name).up()
-                .ele('cac:PostalAddress')
-                    .ele('cbc:StreetName').txt(jsonData.buyer.PostalAddress.StreetName).up()
-                    .ele('cbc:AdditionalStreetName').txt(jsonData.buyer.PostalAddress.AdditionalStreetName).up()
-                    .ele('cbc:BuildingNumber').txt(jsonData.buyer.PostalAddress.BuildingNumber).up()
-                    .ele('cbc:CityName').txt(jsonData.buyer.PostalAddress.CityName).up()
-                    .ele('cbc:PostalZone').txt(jsonData.buyer.PostalAddress.PostalZone).up()
-                    .ele('cbc:CountrySubentity').txt(jsonData.buyer.PostalAddress.CountrySubentity).up()
-                    .ele('cbc:Country')
-                        .ele('cbc:IdentificationCode').txt(jsonData.buyer.PostalAddress.CountryCode).up()
-                    .up()
-                .up()
-                .ele('cac:TaxScheme')
-                    .ele('cbc:RegistrationName').txt(jsonData.buyer.TaxScheme.RegistrationName).up()
-                    .ele('cbc:CompanyID').txt(jsonData.buyer.TaxScheme.CompanyID).up()
-                    .ele('cbc:TaxSchemeID').txt(jsonData.buyer.TaxScheme.TaxSchemeID).up()
-                .up()
-                .ele('cac:Contact')
-                    .ele('cbc:Telephone').txt(jsonData.buyer.Contact.Telephone).up()
-                    .ele('cbc:Telefax').txt(jsonData.buyer.Contact.Telefax).up()
-                    .ele('cbc:ElectronicMail').txt(jsonData.buyer.Contact.Email).up()
-                .up()
-                .ele('cac:Person')
-                    .ele('cbc:FirstName').txt(jsonData.buyer.Person.FirstName).up()
-                    .ele('cbc:MiddleName').txt(jsonData.buyer.Person.MiddleName).up()
-                    .ele('cbc:FamilyName').txt(jsonData.buyer.Person.FamilyName).up()
-                    .ele('cbc:JobTitle').txt(jsonData.buyer.Person.JobTitle).up()
-                .up()
-            .up()
-            .ele('cac:LegalMonetaryTotal')
-                .ele('cbc:PayableAmount', { currencyID: jsonData.monetaryTotal.PayableAmount.currencyID })
-                    .txt(jsonData.monetaryTotal.PayableAmount.value)
-                .up()
-            .up()
-            .ele('cac:OrderLine')
-                .ele('cbc:ID').txt(jsonData.order_lines[0].id).up()
-                .ele('cbc:Note').txt(jsonData.order_lines[0].note).up()
-                .ele('cbc:Quantity', { unitCode: jsonData.order_lines[0].unit_code })
-                    .txt(jsonData.order_lines[0].quantity)
-                .up()
-                .ele('cbc:LineExtensionAmount', { currencyID: jsonData.order_lines[0].currency })
-                    .txt(jsonData.order_lines[0].line_extension_amount)
-                .up()
-                .ele('cac:Price')
-                    .ele('cbc:PriceAmount').txt(jsonData.order_lines[0].price.amount).up()
-                    .ele('cbc:BaseQuantity').txt(jsonData.order_lines[0].price.base_quantity).up()
-                .up()
-                .ele('cac:Item')
-                    .ele('cbc:Name').txt(jsonData.order_lines[0].item.name).up()
-                    .ele('cbc:SellersItemIdentification')
-                        .ele('cbc:ID').txt(jsonData.order_lines[0].item.seller_item_id).up()
-                    .up()
-                    .ele('cac:ClassifiedTaxCategory')
-                        .ele('cbc:ID').txt(jsonData.order_lines[0].item.tax.id).up()
-                        .ele('cbc:Percent').txt(jsonData.order_lines[0].item.tax.percent).up()
-                        .ele('cbc:TaxSchemeID').txt(jsonData.order_lines[0].item.tax.scheme_id).up()
-                    .up()
-                .up()
-            .up()
-        .up()
-        .end({ prettyPrint: true });
+const generateXML = (jsonOrderData, orderId) => {
+  const now = new Date();
+  const issueDate = now.toISOString().split("T")[0];
+  const issueTime = now.toTimeString().split(" ")[0];
+    
+  let totalAllowance = 0;
+  let totalCharge = 0;
 
-    console.log(xml);
+  const xml = create({ version: '1.0', encoding: 'UTF-8' })
+    .ele('Order', {
+        'xmlns': 'urn:oasis:names:specification:ubl:schema:xsd:Order-2',
+        'xmlns:cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
+        'xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2'
+    })
+      .ele('cbc:UBLVersionID').txt('2.1').up()
+      .ele('cbc:CustomizationID').txt('urn:www.cenbii.eu:transaction:biicoretrdm001:ver1.0').up()
+      .ele('cbc:ProfileID', { schemeAgencyID: 'BII', schemeID: 'Profile' }).txt('urn:www.cenbii.eu:profile:BII01:ver1.0').up()
+      .ele('cbc:ID').txt(orderId).up()
+      .ele('cbc:IssueDate').txt(issueDate).up()
+      .ele('cbc:IssueTime').txt(issueTime).up()
+      .ele('cbc:Note').txt(jsonOrderData.order.note).up()
+      .ele('cbc:DocumentCurrencyCode').txt(jsonOrderData.order.documentCurrencyCode).up()
+      .ele('cbc:AccountingCostCode').txt(jsonOrderData.order.accountingCostCode).up()
+      .ele('cac:ValidityPeriod')
+        .ele('cbc:EndDate').txt(jsonOrderData.order.validityEndDate).up()
+      .up()
+      .ele('cac:QuotationDocumentReference')
+        .ele('cbc:ID').txt(jsonOrderData.order.quotationDocumentReferenceId).up()
+      .up()
+      .ele('cac:OrderDocumentReference')
+        .ele('cbc:ID').txt(jsonOrderData.order.orderDocumentReferenceId).up()
+      .up()
+      .ele('cac:OriginatorDocumentReference')
+        .ele('cbc:ID').txt(jsonOrderData.order.originatorDocumentReferenceId).up()
+      .up();
+
+  // Additional Document Reference
+  if (jsonOrderData.additionalDocumentReference && jsonOrderData.additionalDocumentReference.length > 0) {
+    jsonOrderData.additionalDocumentReference.forEach((doc, index) => {
+      let docRef = xml.ele('cac:AdditionalDocumentReference')
+          .ele('cbc:ID').txt("doc" + (index + 1)).up()
+          .ele('cbc:DocumentType').txt(doc.documentType).up();
+
+      if (doc.attachment) {
+          let attachment = docRef.ele('cac:Attachment');
+          
+          if (doc.attachment.uri) {
+              // Handle external reference
+              attachment.ele('cac:ExternalReference')
+                  .ele('cbc:URI').txt(doc.attachment.uri).up()
+              .up();
+          } else if (doc.attachment.binaryObject && doc.attachment.mimeCode) {
+              // Handle binary object
+              attachment.ele('cbc:EmbeddedDocumentBinaryObject')
+                  .txt(doc.attachment.binaryObject)
+                  .att('mimeCode', doc.attachment.mimeCode)
+              .up();
+          }
+      }
+
+      docRef.up();
+    });
+  }
+
+  // Contract Section
+  xml.ele('cac:Contract')
+    .ele('cbc:ID').txt(jsonOrderData.order.contractId).up()
+    .ele('cbc:ContractType').txt(jsonOrderData.order.contractType).up()
+  .up()
+
+  // Buyer Party
+  .ele('cac:BuyerCustomerParty')
+    .ele('cac:Party')
+        .ele('cbc:EndpointID', { schemeAgencyID: '9', schemeID: 'GLN' }).txt(jsonOrderData.buyer.buyerId).up()
+        .ele('cac:PartyIdentification')
+          .ele('cbc:ID', { schemeAgencyID: '9', schemeID: 'GLN' }).txt(jsonOrderData.buyer.buyerId).up()
+        .up()
+        .ele('cac:PartyName')
+          .ele('cbc:Name').txt(jsonOrderData.buyer.name).up()
+        .up()
+        .ele('cac:PostalAddress')
+          .ele('cbc:Postbox').txt(jsonOrderData.buyer.postalAddress.postBox).up()
+          .ele('cbc:StreetName').txt(jsonOrderData.buyer.postalAddress.streetName).up()
+          .ele('cbc:AdditionalStreetName').txt(jsonOrderData.buyer.postalAddress.additionalStreetName).up()
+          .ele('cbc:BuildingNumber').txt(jsonOrderData.buyer.postalAddress.buildingNumber).up()
+          .ele('cbc:Department').txt(jsonOrderData.buyer.postalAddress.department).up()
+          .ele('cbc:CityName').txt(jsonOrderData.buyer.postalAddress.cityName).up()
+          .ele('cbc:PostalZone').txt(jsonOrderData.buyer.postalAddress.postalZone).up()
+          .ele('cbc:CountrySubentity').txt(jsonOrderData.buyer.postalAddress.countrySubentity).up()
+          .ele('cbc:Country')
+            .ele('cbc:IdentificationCode').txt(jsonOrderData.buyer.postalAddress.countryCode).up()
+          .up()
+        .up()
+        .ele('cac:PartyTaxScheme')
+          .ele('cac:RegistrationAddress')
+            .ele('cbc:CityName').txt(jsonOrderData.buyer.postalAddress.cityName).up()
+            .ele('cac:Country')
+              .ele('cbc:IdentificationCode').txt(jsonOrderData.buyer.postalAddress.countryCode).up()
+            .up()
+          .up()
+          .ele('cbc:TaxScheme', { schemeID: 'UN/ECE 515', schemeAgencyID: '6' })
+            .ele('cbc:ID').txt(jsonOrderData.buyer.taxScheme).up()
+          .up()
+        .up()
+        .ele('cac:PartyLegalEntity')
+          .ele('cbc:RegistrationName').txt(jsonOrderData.buyer.name).up()
+          .ele('cbc:CompanyID', { schemeID: 'SE:ORGNR' }).txt(jsonOrderData.buyer.buyerId).up()
+          .ele('cac:RegistrationAddress')
+            .ele('cbc:CityName').txt(jsonOrderData.buyer.postalAddress.cityName).up()
+            .ele('cbc:CountrySubentity').txt(jsonOrderData.buyer.postalAddress.countrySubentity).up()
+            .ele('cac:Country')
+              .ele('cbc:IdentificationCode').txt(jsonOrderData.buyer.postalAddress.countryCode).up()
+            .up()
+          .up()
+        .up()
+        .ele('cac:Contact')
+          .ele('cbc:Telephone').txt(jsonOrderData.buyer.contact.telephone).up()
+          .ele('cbc:Telefax').txt(jsonOrderData.buyer.contact.telefax).up()
+          .ele('cbc:ElectronicMail').txt(jsonOrderData.buyer.contact.email).up()
+        .up()
+        .ele('cac:Person')
+          .ele('cbc:FirstName').txt(jsonOrderData.buyer.person.firstName).up()
+          .ele('cbc:FamilyName').txt(jsonOrderData.buyer.person.familyName).up()
+          .ele('cbc:MiddleName').txt(jsonOrderData.buyer.person.middleName).up()
+          .ele('cbc:JobTitle').txt(jsonOrderData.buyer.person.jobTitle).up()
+        .up()
+      .up()
+      .ele('cac:DeliveryContact')
+        .ele('cbc:Name').txt(jsonOrderData.buyer.deliveryContact.name).up()
+        .ele('cbc:Telephone').txt(jsonOrderData.buyer.deliveryContact.telephone).up()
+        .ele('cbc:Telefax').txt(jsonOrderData.buyer.deliveryContact.telefax).up()
+        .ele('cbc:ElectronicMail').txt(jsonOrderData.buyer.deliveryContact.email).up()
+      .up()
+  .up()
+
+  // Seller Party
+  .ele('cac:SellerSupplierParty')
+    .ele('cac:Party')
+      .ele('cbc:EndpointID', { schemeAgencyID: '9', schemeID: 'GLN' }).txt(jsonOrderData.seller.sellerId).up()
+      .ele('cac:PartyIdentification')
+        .ele('cbc:ID').txt(jsonOrderData.seller.sellerId).up()
+      .up()
+      .ele('cac:PartyName')
+        .ele('cbc:Name').txt(jsonOrderData.seller.name).up()
+      .up()
+      .ele('cac:PostalAddress')
+        .ele('cbc:Postbox').txt(jsonOrderData.seller.postalAddress.postBox).up()
+        .ele('cbc:StreetName').txt(jsonOrderData.seller.postalAddress.streetName).up()
+        .ele('cbc:AdditionalStreetName').txt(jsonOrderData.seller.postalAddress.additionalStreetName).up()
+        .ele('cbc:BuildingNumber').txt(jsonOrderData.seller.postalAddress.buildingNumber).up()
+        .ele('cbc:Department').txt(jsonOrderData.seller.postalAddress.department).up()
+        .ele('cbc:CityName').txt(jsonOrderData.seller.postalAddress.cityName).up()
+        .ele('cbc:PostalZone').txt(jsonOrderData.seller.postalAddress.postalZone).up()
+        .ele('cbc:CountrySubentity').txt(jsonOrderData.seller.postalAddress.countrySubentity).up()
+        .ele('cac:Country')
+          .ele('cbc:IdentificationCode').txt(jsonOrderData.seller.postalAddress.countryCode).up()
+        .up()
+      .up()
+      .ele('cac:PartyLegalEntity')
+        .ele('cbc:RegistrationName').txt(jsonOrderData.seller.name).up()
+        .ele('cbc:CompanyID', { schemeID: 'SE:ORGNR' }).txt(jsonOrderData.seller.sellerId).up()
+        .ele('cac:RegistrationAddress')
+          .ele('cbc:CityName').txt(jsonOrderData.seller.postalAddress.cityName).up()
+          .ele('cbc:CountrySubentity').txt(jsonOrderData.seller.postalAddress.countrySubentity).up()
+          .ele('cac:Country')
+            .ele('cbc:IdentificationCode').txt(jsonOrderData.seller.postalAddress.countryCode).up()
+          .up()
+        .up()
+      .up()
+      .ele('cac:Contact')
+        .ele('cbc:Telephone').txt(jsonOrderData.seller.contact.telephone).up()
+        .ele('cbc:Telefax').txt(jsonOrderData.seller.contact.telefax).up()
+        .ele('cbc:ElectronicMail').txt(jsonOrderData.seller.contact.email).up()
+      .up()
+      .ele('cac:Person')
+        .ele('cbc:FirstName').txt(jsonOrderData.seller.person.firstName).up()
+        .ele('cbc:FamilyName').txt(jsonOrderData.seller.person.familyName).up()
+        .ele('cbc:MiddleName').txt(jsonOrderData.seller.person.middleName).up()
+        .ele('cbc:JobTitle').txt(jsonOrderData.seller.person.jobTitle).up()
+      .up()
+    .up()
+  .up()
+
+  // Originator Customer Party
+  .ele('cac:OriginatorCustomerParty')
+    .ele('cac:Party')
+      .ele('cac:PartyIdentification')
+        .ele('cbc:ID', { schemeAgencyID: '9', schemeID: 'GLN' }).txt(jsonOrderData.seller.sellerId).up()
+      .up()
+      .ele('cac:PartyName')
+        .ele('cbc:Name').txt(jsonOrderData.seller.name).up()
+      .up()
+      .ele('cac:Contact')
+        .ele('cbc:Telephone').txt(jsonOrderData.seller.contact.telephone).up()
+        .ele('cbc:Telefax').txt(jsonOrderData.seller.contact.telefax).up()
+        .ele('cbc:ElectronicMail').txt(jsonOrderData.seller.contact.email).up()
+      .up()
+      .ele('cac:Person')
+        .ele('cbc:FirstName').txt(jsonOrderData.seller.person.firstName).up()
+        .ele('cbc:MiddleName').txt(jsonOrderData.seller.person.middleName).up()
+        .ele('cbc:FamilyName').txt(jsonOrderData.seller.person.familyName).up()
+        .ele('cbc:JobTitle').txt(jsonOrderData.seller.person.jobTitle).up()
+      .up()
+    .up()
+  .up()
+
+  // Delivery Section
+  .ele('cac:Delivery')
+    .ele('cac:DeliveryLocation')
+      .ele('cac:Address')
+        .ele('cbc:Postbox').txt(jsonOrderData.delivery.deliveryAddress.postBox).up()
+        .ele('cbc:StreetName').txt(jsonOrderData.delivery.deliveryAddress.streetName).up()
+        .ele('cbc:AdditionalStreetName').txt(jsonOrderData.delivery.deliveryAddress.additionalStreetName).up()
+        .ele('cbc:BuildingNumber').txt(jsonOrderData.delivery.deliveryAddress.buildingNumber).up()
+        .ele('cbc:Department').txt(jsonOrderData.delivery.deliveryAddress.department).up()
+        .ele('cbc:CityName').txt(jsonOrderData.delivery.deliveryAddress.cityName).up()
+        .ele('cbc:PostalZone').txt(jsonOrderData.delivery.deliveryAddress.postalZone).up()
+        .ele('cbc:CountrySubentity').txt(jsonOrderData.delivery.deliveryAddress.countrySubentity).up()
+        .ele('cac:Country')
+          .ele('cbc:IdentificationCode').txt(jsonOrderData.delivery.deliveryAddress.countryCode).up()
+        .up()
+      .up()
+    .up()
+    .ele('cac:RequestedDeliveryPeriod')
+      .ele('cbc:StartDate').txt(jsonOrderData.delivery.requestedDeliveryPeriod.startDate).up()
+      .ele('cbc:EndDate').txt(jsonOrderData.delivery.requestedDeliveryPeriod.endDate).up()
+    .up()
+    .ele('cac:DeliveryParty')
+      .ele('cac:PartyIdentification')
+        .ele('cbc:ID', { schemeAgencyID: '9', schemeID: 'GLN' }).txt(jsonOrderData.delivery.deliveryParty.name).up()
+      .up()
+      .ele('cac:PartyName')
+        .ele('cbc:Name').txt(jsonOrderData.delivery.deliveryParty.name).up()
+      .up()
+      .ele('cac:Contact')
+        .ele('cbc:Name').txt(jsonOrderData.delivery.deliveryParty.name).up()
+        .ele('cbc:Telephone').txt(jsonOrderData.delivery.deliveryParty.telephone).up()
+        .ele('cbc:Telefax').txt(jsonOrderData.delivery.deliveryParty.telefax).up()
+        .ele('cbc:ElectronicMail').txt(jsonOrderData.delivery.deliveryParty.email).up()
+      .up()
+    .up()
+  .up()
+
+  // Allowance Charge
+  if (jsonOrderData.monetaryTotal.allowanceCharge && jsonOrderData.monetaryTotal.allowanceCharge.length > 0) {
+    jsonOrderData.monetaryTotal.allowanceCharge.forEach(charge => {
+      xml.ele('cac:AllowanceCharge')
+        .ele('cbc:ChargeIndicator').txt(charge.chargeIndicator).up()
+        .ele('cbc:AllowanceChargeReason').txt(charge.allowanceChargeReason).up()
+        .ele('cbc:Amount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(charge.amount).up()
+      .up();
+
+      if (charge.chargeIndicator === 'true') {
+        totalCharge += charge.amount;
+      } else {
+        totalAllowance += charge.amount;
+      }
+    });
+  }
+
+  // Tax Total
+  xml.ele('cac:TaxTotal')
+    .ele('cbc:TaxAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(jsonOrderData.monetaryTotal.taxTotal).up()
+  .up()
+
+  // Anticipated Monetary Total
+  .ele('cac:AnticipatedMonetaryTotal')
+    .ele('cbc:LineExtensionAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(jsonOrderData.monetaryTotal.lineExtensionAmount).up()
+    .ele('cbc:AllowanceTotalAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(totalAllowance).up()
+    .ele('cbc:ChargeTotalAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(totalCharge).up()
+    .ele('cbc:PayableAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(jsonOrderData.monetaryTotal.lineExtensionAmount - totalAllowance + totalCharge).up()
+  .up()
+
+  // Order Lines
+  jsonOrderData.orderLines.forEach((line, index) => {
+    let lineItemEle = xml.ele('cac:OrderLine')
+      .ele('cbc:Note').txt(line.note).up()
+      .ele('cac:LineItem')
+        .ele('cbc:ID').txt(index + 1).up()
+        .ele('cbc:Quantity', { unitCode: line.lineItem.baseQuantity.unitCode }).txt(line.lineItem.quantity).up()
+        .ele('cbc:LineExtensionAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(line.lineItem.quantity * line.lineItem.price).up()
+        .ele('cbc:TotalTaxAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(line.lineItem.totalTaxAmount).up()
+        .ele('cac:Delivery')
+          .ele('cbc:RequestedDeliveryPeriod')
+            .ele('cbc:StartDate').txt(jsonOrderData.delivery.requestedDeliveryPeriod.startDate).up()
+            .ele('cbc:EndDate').txt(jsonOrderData.delivery.requestedDeliveryPeriod.endDate).up()
+          .up()
+        .up()
+        .ele('cbc:Price')
+          .ele('cbc:PriceAmount', { currencyID: jsonOrderData.order.documentCurrencyCode }).txt(line.lineItem.price).up()
+          .ele('cbc:BaseQuantity', { unitCode: line.lineItem.baseQuantity.unitCode }).txt(line.lineItem.baseQuantity.quantity).up()
+        .up()
+
+    let itemEle = lineItemEle.ele('cac:Item')
+      .ele('cbc:Description').txt(line.lineItem.item.description).up()
+      .ele('cbc:Name').txt(line.lineItem.item.name).up()
+      .ele('cac:SellersItemIdentification')
+        .ele('cbc:ID').txt(line.lineItem.item.itemId).up()
+      .up()
+
+    if (line.lineItem.item.properties && Object.keys(line.lineItem.item.properties).length > 0) {
+      Object.entries(line.lineItem.item.properties).forEach(([key, value]) => {
+        itemEle.ele('cac:AdditionalItemProperty')
+          .ele('cbc:Name').txt(key).up()
+          .ele('cbc:Value').txt(value).up()
+        .up();
+      });
+    }
+
+    itemEle.up();
+    lineItemEle.up();
+  });
+
+  xml.up();
+
+  return xml.end({ prettyPrint: true });
 }
