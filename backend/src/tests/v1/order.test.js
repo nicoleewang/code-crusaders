@@ -180,7 +180,7 @@ describe('POST /v1/order/create/form', () => {
   }
 
   test('should return 200 and an orderId', async () => {
-    const res = await orderFormCreateRequest(validParams); // Await the request
+    const res = await orderFormCreateRequest(validParams);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);
@@ -188,4 +188,18 @@ describe('POST /v1/order/create/form', () => {
     expect(typeof body.orderId).toBe('number');
     expect(Number.isInteger(body.orderId)).toBe(true);
   });
+
+  test('should return 400 and an error message', async () => {
+    const invalidParams = { ...validParams };
+    delete invalidParams.order;
+
+    const res = await orderFormCreateRequest(invalidParams);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test.todo('should return 401 and an error message');
 });
