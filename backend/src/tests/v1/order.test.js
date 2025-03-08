@@ -104,7 +104,7 @@ describe('POST /v1/order/create/form', () => {
     },
     "monetaryTotal": {
       "lineExtensionAmount": "6225",
-      "taxTotal": "100",
+      "taxTotal": 100,
       "allowanceCharge": [
         {
           "chargeIndicator": "true",
@@ -130,7 +130,7 @@ describe('POST /v1/order/create/form', () => {
             "unitCode": "LTR"
           },
           "item": {
-            "itemId": "SItemNo011",
+            "itemId": 45252,
             "description": "Red paint",
             "name": "Falu Rödfärg",
             "properties": {
@@ -151,7 +151,7 @@ describe('POST /v1/order/create/form', () => {
             "unitCode": "C62"
           },
           "item": {
-            "itemId": "SItemNo001",
+            "itemId": 54223,
             "description": "Very good pencils for red paint.",
             "name": "Pensel 20 mm",
             "properties": {
