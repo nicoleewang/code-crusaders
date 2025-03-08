@@ -11,12 +11,11 @@ export const orderFormCreate = async (orderData) => {
     // Insert order into the database
     const { orderError } = await supabase
       .from('order')
-      .insert([{ orderId: orderId, xml: xml}])
-      .select();
+      .insert([{ orderId: orderId, xml: xml}]);
 
     // If there's an error with the insert
     if (orderError) {
-      throw createHttpError(500, `Failed to insert order: ${error.message}`);
+      throw createHttpError(500, `Failed to insert order: ${orderError.statusText}`);
     }
 
     // Insert registered order into the database
@@ -26,7 +25,7 @@ export const orderFormCreate = async (orderData) => {
 
     // If there's an error with the insert
     if (registeredOrderError) {
-      throw createHttpError(500, `Failed to insert order: ${error.message}`);
+      throw createHttpError(500, `Failed to insert order: ${registeredOrderError.statusText}`);
     }
 
     orderData.orderLines.forEach(async (line) => {
@@ -44,7 +43,7 @@ export const orderFormCreate = async (orderData) => {
 
       // If there's an error with the insert
       if (productError) {
-        throw createHttpError(500, `Failed to insert order line: ${error.message}`);
+        throw createHttpError(500, `Failed to insert order line: ${productError.statusText}`);
       }
 
       // Insert relationship between order and product into the database
@@ -58,7 +57,7 @@ export const orderFormCreate = async (orderData) => {
 
       // If there's an error with the insert
       if (orderProductError) {
-        throw createHttpError(500, `Failed to insert order line: ${error.message}`);
+        throw createHttpError(500, `Failed to insert order line: ${orderProductError.statusText}`);
       }
     })
 
