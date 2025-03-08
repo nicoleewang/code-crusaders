@@ -1,92 +1,10 @@
 openapi: 3.0.0
 info: 
-  title: Sample API
-  description: API Documentation experimentation for seng2021
+  title: Order Creation API Documentation
+  description: Outlines all the routes in our order creation API
   version: 1.0.0
 
 paths:
-  /:
-    get:
-      summary: Returns a greeting
-      description: where does this go?
-      tags:
-      - examples
-      parameters: 
-        - in: path
-          name: id
-          required: true
-          description: where does this description for param go
-          schema:
-            type: integer
-      responses:
-        200:
-          description: greeting response
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Hello World!
-    put:
-      summary: Puts a greeting
-      description: something about put
-      tags:
-      - examples
-      parameters:
-        - in: path
-          name: userPassword
-          required: true
-          description: will this work?
-          schema:
-            type: string
-      responses: 
-        200:
-          description: putting a greeting
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Hello World !
-    post:
-      summary: Posts a greeting
-      description: something about post
-      tags:
-      - examples
-      responses:
-        200:
-          description: posting a greeting
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Hello World  !
-    delete: 
-      summary: Deletes a greeting
-      description: something about deleting stuff
-      tags:
-      - examples
-      responses:
-        400:
-          description: invalid greeting
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Error400
-        200:  
-          description: deleting a greeting
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Goodbye World !
-
-
-
-
-
-
-
-
   /v1/order/create/form:
     post:
       summary: Creates an order form for a user
@@ -120,29 +38,19 @@ paths:
                   description: Contains information on any additional supporting documents
       responses:
         200:
-          description: Successfully created a new order form
+          description: OK
           content:
             application/json:
               schema:
-                type: integer
-                example: orderId1
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                    example: 12345
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
-
+          $ref: "#/components/responses/UnauthorizedResponse"
 
   /v1/order/create/csv:
     post:
@@ -159,28 +67,20 @@ paths:
             type: string
       responses:
         200:
-          description: Successfully created a new order form
+          description: OK
           content:
             application/json:
               schema:
-                type: integer
-                example: orderId1
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                    example: 12345
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
+
   /v1/order/create/pdf:
     post:
       summary: Creates a pdf version of an order created
@@ -196,28 +96,20 @@ paths:
             type: string
       responses:
         200:
-          description: Successfully created a new order form
+          description: OK
           content:
             application/json:
               schema:
-                type: integer
-                example: orderId1
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                    example: 12345
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
+
   /v1/order/list:
     get:
       summary: Lists the orders of the user
@@ -225,29 +117,20 @@ paths:
       tags:
       - Order
       responses:
-        200: 
-          description: All of the users XML Order Documents contained as strings in an array
+        200:
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                example: ublOrderDocuments
+                items:
+                  type: string
+                example: [ "order1", "order2", "order3" ]
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
+
   /v1/order/{orderId}:
     get:
       summary: Gets a specific order of a user
@@ -263,28 +146,19 @@ paths:
             type: integer
       responses:
         200: 
-          description: Successfully got orderId
+          description: OK
           content:
             application/json:
               schema:
-                type: string
-                example: ublDocument
+                type: object
+                properties:
+                  ublDocument: 
+                    type: string
+                    example: "<Invoice><ID>12345</ID><CustomerName>John Smith</CustomerName></Invoice>"
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request 
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
 
     put:
       summary: Updates the information of an order
@@ -322,24 +196,16 @@ paths:
                   items:
                     type: object
       responses:
-        200: 
-          description: Successfully updated order
-        400:
-          description: Client error, bad request
+        200:
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  error: Bad request
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
 
     delete:
       summary: Deletes a UBL Order Document
@@ -355,35 +221,16 @@ paths:
             type: integer
       responses:
         200:
-          description: Successfully deleted the order document
+          description: OK
           content:
             application/json:
               schema:
-                type: string
-                example: "Order successfully deleted"
+                type: object
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
-        404:
-          description: Order not found
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "Order not found"
+          $ref: "#/components/responses/UnauthorizedResponse"
+
   /v1/user/register:
     post:
       summary: Register a new user
@@ -399,19 +246,19 @@ paths:
               properties:
                 email:
                   type: string
-                  description: User's email
+                  example: "user@example.com"
                 password:
                   type: string
-                  description: User's password
+                  example: "Password123"
                 nameFirst:
                   type: string
-                  description: User's first name
+                  example: "John"
                 nameLast:
                   type: string
-                  description: User's last name
+                  example: "Smith"
       responses:
         200:
-          description: Successfully registered new user
+          description: OK
           content:
             application/json:
               schema:
@@ -419,23 +266,12 @@ paths:
                 properties:
                   token:
                     type: string
-                    description: User's session token
+                    example: "1t2nb34"
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
+
   /v1/user/login:
     post:
       summary: Login a user
@@ -451,13 +287,13 @@ paths:
               properties:
                 email:
                   type: string
-                  description: User's email
+                  example: "user@example.com"
                 password:
                   type: string
-                  description: User's password
+                  example: "Password123"
       responses:
         200:
-          description: Successfully logged in user
+          description: OK
           content:
             application/json:
               schema:
@@ -465,28 +301,210 @@ paths:
                 properties:
                   token:
                     type: string
-                    description: User's session token
+                    example: "1t2nb34"
         400:
-          description: Client error, bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  error: Bad request
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
-            application/json:
-              schema:
-                type: object
-                example: 
-                  error: Unauthorised request
+          $ref: "#/components/responses/UnauthorizedResponse"
 
   /v1/user/logout:
     post:
       summary: Logout a user
       description: Logs out the current user, invalidating their session token
+      tags:
+        - User
+      parameters:
+        - name: token
+          in: header
+          description: user’s current session token
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/user/statistics:
+    get:
+      summary: Returns a user's order statistics
+      description: Retrieves statistics to display on the user's dashboard
+      tags:
+        - User
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderStatistics'
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/order/received/{orderId}:
+    delete:
+      summary: Deletes a received order
+      description: Deletes a received UBL document from the user's inbox. The sender can still view it.
+      tags:
+        - Order
+      parameters:
+        - name: orderId
+          in: path
+          description: Order id to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/order/received/list:
+    get:
+      summary: Lists user's received orders
+      description: Lists all of the user's received UBL documents
+      tags:
+        - Order
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: [ "order1", "order2", "order3" ]
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/order/sent/{orderId}:
+    delete:
+      summary: Unsends an order
+      description: Deletes (unsends) a sent UBL document
+      tags:
+        - Order
+      parameters: 
+        - name: orderId
+          in: path
+          description: Order id to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/order/sent/list:
+    get:
+      summary: Lists user's sent orders
+      description: Lists all of the user’s sent UBL documents
+      tags:
+        - Order
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: [ "order1", "order2", "order3" ]
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+  
+  /v1/order/send:
+    post:
+      summary: Sends an order
+      description: Sends a UBL order document 
+      tags:
+        - Order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "receiver@example.com"
+                orderId:
+                  type: string
+                  example: "12345"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/order/{orderId}/pdf:
+    get:
+      summary: Gets PDF copy of order
+      description: Gets the PDF version of a UBL Order document
+      tags:
+      - Order
+      parameters: 
+        - name: orderId
+          in: path
+          description: Order id to generate a PDF copy
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example: 
+                  pdfLink: "https://example.com/files/sample.pdf"
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+  
+  /v1/user/details:
+    put:
+      summary: Updates a user's details
+      description: Updates the details of the current user
       tags:
         - User
       requestBody:
@@ -496,31 +514,151 @@ paths:
             schema:
               type: object
               properties:
-                token:
+                firstName:
                   type: string
-                  description: User's current session token
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Smith"
+                password:
+                  type: string
+                  example: "Password123"
       responses:
         200:
-          description: Successfully logged out user
+          description: OK
           content:
             application/json:
               schema:
-                type: string
-                example: "User successfully logged out"
+                type: object
         400:
-          description: Client error, bad request
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+    get: 
+      summary: Gets a users details
+      description: Get the details of the current user
+      tags:
+        - User
+      responses:
+        200:
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example:
-                  error: Bad request
+                properties:
+                  firstName:
+                    type: string
+                    example: "John"
+                  lastName:
+                    type: string
+                    example: "Smith"
+                  password:
+                    type: string
+                    example: "Password123"
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
         401:
-          description: Unauthorised request
-          content: 
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+  /v1/user/reset:
+    post:
+      summary: Reset a user's password
+      description: Allows a user to reset their password
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: integer
+                  example: 1234
+                newPassword:
+                  type: string
+                  example: "Password123"
+      responses:
+        200:
+          description: OK
+          content:
             application/json:
               schema:
                 type: object
-                example: 
-                  error: Unauthorised request
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
 
+  /v1/user/forgot:
+    post:
+      summary: Sends code for password reset
+      description: Allows a user to reset their password
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedResponse"
+
+components:
+  responses:
+    BadRequestResponse:
+      description: Client error, bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            example:
+              error: "Client error, bad request"
+    UnauthorizedResponse:
+      description: Unauthorized request
+      content:
+        application/json:
+          schema:
+            type: object
+            example:
+              error: "Unauthorized request"
+  schemas:
+    OrderStatistics:
+      type: object
+      properties:
+        topThreeItems:
+          type: array
+          items:
+            type: string
+        numOrdersMonthly:
+          type: array
+          items:
+            type: integer
+        totalOrders:
+          type: integer
+        totalAmountMonth:
+          type: number
+          format: float
+      example:
+        topThreeItems: ["item1", "item2", "item3"]
+        numOrdersMonthly: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65]
+        totalOrders: 1000
+        totalAmountMonth: 2500.75
