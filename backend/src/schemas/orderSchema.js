@@ -122,7 +122,7 @@ const orderSchema = Joi.object({
         unitCode: Joi.string().required()
       }).required(),
       item: Joi.object({
-        itemId: Joi.string().required(),
+        itemId: Joi.number().required(),
         description: Joi.string().required(),
         name: Joi.string().required(),
         properties: Joi.object().pattern(Joi.string(), Joi.string()).optional()

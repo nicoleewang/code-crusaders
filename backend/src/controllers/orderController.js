@@ -2,11 +2,11 @@ import createHttpError from 'http-errors';
 import supabase from '../config/db.js';
 import { create } from 'xmlbuilder2';
 
-export const orderFormCreate = async (jsonOrderData) => {
+export const orderFormCreate = async (orderData) => {
   try {
     // Generate a unique order ID
     const orderId = Math.floor(Math.random() * 1000000);
-    const { xml, totalCost } = generateXML(jsonOrderData, orderId);
+    const { xml, totalCost } = generateXML(orderData, orderId);
 
     // Insert order into the database
     const { orderError } = await supabase
@@ -28,6 +28,39 @@ export const orderFormCreate = async (jsonOrderData) => {
     if (registeredOrderError) {
       throw createHttpError(500, `Failed to insert order: ${error.message}`);
     }
+
+    orderData.orderLines.forEach(async (line) => {
+      const productId = line.lineItem.item.itemId;
+      // Insert product into the database
+      const { productError } = await supabase
+        .from('product')
+        .upsert([{ 
+          productId: productId,
+          sellerItemId: orderData.seller.sellerId,
+          cost: line.lineItem.price,
+          description: line.lineItem.item.description,
+          name: line.lineItem.item.name,
+        }])
+
+      // If there's an error with the insert
+      if (productError) {
+        throw createHttpError(500, `Failed to insert order line: ${error.message}`);
+      }
+
+      // Insert relationship between order and product into the database
+      const { orderProductError } = await supabase
+        .from('registeredOrderProduct')
+        .insert([{ 
+          orderId: orderId,
+          productId: productId,
+          quantity: line.lineItem.quantity,
+        }])
+
+      // If there's an error with the insert
+      if (orderProductError) {
+        throw createHttpError(500, `Failed to insert order line: ${error.message}`);
+      }
+    })
 
     return { orderId: orderId };
 
