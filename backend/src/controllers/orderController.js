@@ -9,57 +9,56 @@ export const orderFormCreate = async (orderData) => {
     const { xml, totalCost } = generateXML(orderData, orderId);
 
     // Insert order into the database
-    const { orderError } = await supabase
+    const { error: orderError } = await supabase
       .from('order')
-      .insert([{ orderId: orderId, xml: xml}]);
+      .insert([{ orderId, xml }]);
 
-    // If there's an error with the insert
     if (orderError) {
-      throw createHttpError(500, `Failed to insert order: ${orderError.statusText}`);
+      throw createHttpError(500, `Failed to insert order: ${orderError.message}`);
     }
 
     // Insert registered order into the database
-    const { registeredOrderError } = await supabase
+    const { error: registeredOrderError } = await supabase
       .from('registeredOrder')
-      .insert([{ orderId: orderId, cost: totalCost }])
+      .insert([{ orderId, cost: totalCost }]);
 
-    // If there's an error with the insert
     if (registeredOrderError) {
-      throw createHttpError(500, `Failed to insert order: ${registeredOrderError.statusText}`);
+      throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
     }
 
-    orderData.orderLines.forEach(async (line) => {
+    const productInsertPromises = orderData.orderLines.map(async (line) => {
       const productId = line.lineItem.item.itemId;
+
       // Insert product into the database
-      const { productError } = await supabase
+      const { error: productError } = await supabase
         .from('product')
         .upsert([{ 
-          productId: productId,
+          productId,
           sellerItemId: orderData.seller.sellerId,
           cost: line.lineItem.price,
           description: line.lineItem.item.description,
           name: line.lineItem.item.name,
-        }])
+        }]);
 
-      // If there's an error with the insert
       if (productError) {
-        throw createHttpError(500, `Failed to insert order line: ${productError.statusText}`);
+        throw createHttpError(500, `Failed to insert product: ${productError.message}`);
       }
 
       // Insert relationship between order and product into the database
-      const { orderProductError } = await supabase
+      const { error: orderProductError } = await supabase
         .from('registeredOrderProduct')
         .insert([{ 
-          orderId: orderId,
-          productId: productId,
+          orderId,
+          productId,
           quantity: line.lineItem.quantity,
-        }])
+        }]);
 
-      // If there's an error with the insert
       if (orderProductError) {
-        throw createHttpError(500, `Failed to insert order line: ${orderProductError.statusText}`);
+        throw createHttpError(500, `Failed to insert order-product relationship: ${orderProductError.message}`);
       }
-    })
+    });
+
+    await Promise.all(productInsertPromises);
 
     return { orderId: orderId };
 
