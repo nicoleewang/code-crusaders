@@ -30,3 +30,7 @@ export const orderFormCreateRequest = (jsonOrderForm) => {
 
 // make ur wrapper functions here for user endpoints below!!!
 // format the name of ur wrapper as <functionName>Request
+
+export const orderFormUpdateRequest = (orderId, jsonOrderForm) => {
+  return requestHelper('PUT', `/v1/order/${orderId}`, jsonOrderForm );
+}
