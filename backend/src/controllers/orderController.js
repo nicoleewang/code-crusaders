@@ -6,59 +6,8 @@ export const orderFormCreate = async (orderData) => {
   try {
     // Generate a unique order ID
     const orderId = Math.floor(Math.random() * 1000000);
-    const { xml, totalCost } = generateXML(orderData, orderId);
 
-    // Insert order into the database
-    const { error: orderError } = await supabase
-      .from('order')
-      .insert([{ orderId, xml }]);
-
-    if (orderError) {
-      throw createHttpError(500, `Failed to insert order: ${orderError.message}`);
-    }
-
-    // Insert registered order into the database
-    const { error: registeredOrderError } = await supabase
-      .from('registeredOrder')
-      .insert([{ orderId, cost: totalCost }]);
-
-    if (registeredOrderError) {
-      throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
-    }
-
-    const productInsertPromises = orderData.orderLines.map(async (line) => {
-      const productId = line.lineItem.item.itemId;
-
-      // Insert product into the database
-      const { error: productError } = await supabase
-        .from('product')
-        .upsert([{ 
-          productId,
-          sellerItemId: orderData.seller.sellerId,
-          cost: line.lineItem.price,
-          description: line.lineItem.item.description,
-          name: line.lineItem.item.name,
-        }]);
-
-      if (productError) {
-        throw createHttpError(500, `Failed to insert product: ${productError.message}`);
-      }
-
-      // Insert relationship between order and product into the database
-      const { error: orderProductError } = await supabase
-        .from('registeredOrderProduct')
-        .insert([{ 
-          orderId,
-          productId,
-          quantity: line.lineItem.quantity,
-        }]);
-
-      if (orderProductError) {
-        throw createHttpError(500, `Failed to insert order-product relationship: ${orderProductError.message}`);
-      }
-    });
-
-    await Promise.all(productInsertPromises);
+    insertOrderIntoDatabase(orderId, orderData); 
 
     return { orderId: orderId };
 
@@ -388,3 +337,140 @@ const generateXML = (orderData, orderId) => {
     totalCost: payableAmount + orderData.monetaryTotal.taxTotal 
   };
 }
+
+const insertOrderIntoDatabase = async (orderId, orderData) => {
+  const { xml, totalCost } = generateXML(orderData, orderId);
+
+  // Insert order into the database
+  const { error: orderError } = await supabase
+  .from('order')
+  .insert([{ orderId, xml }]);
+
+  if (orderError) {
+    throw createHttpError(500, `Failed to insert order: ${orderError.message}`);
+  }
+
+  // Insert registered order into the database
+  const { error: registeredOrderError } = await supabase
+  .from('registeredOrder')
+  .insert([{ orderId, cost: totalCost }]);
+
+  if (registeredOrderError) {
+    throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
+  }
+
+  const productInsertPromises = orderData.orderLines.map(async (line) => {
+    const productId = line.lineItem.item.itemId;
+
+    // Insert product into the database
+    const { error: productError } = await supabase
+      .from('product')
+      .upsert([{ 
+        productId,
+        sellerItemId: orderData.seller.sellerId,
+        cost: line.lineItem.price,
+        description: line.lineItem.item.description,
+        name: line.lineItem.item.name,
+      }]);
+
+    if (productError) {
+      throw createHttpError(500, `Failed to insert product: ${productError.message}`);
+    }
+
+    // Insert relationship between order and product into the database
+    const { error: orderProductError } = await supabase
+      .from('registeredOrderProduct')
+      .insert([{ 
+        orderId,
+        productId,
+        quantity: line.lineItem.quantity,
+      }]);
+
+    if (orderProductError) {
+      throw createHttpError(500, `Failed to insert order-product relationship: ${orderProductError.message}`);
+    }
+  });
+
+  await Promise.all(productInsertPromises);
+};
+
+export const isOrderIdValid = async (orderId) => {
+  const { count, error } = await supabase
+  .from('order')
+  .select('*', { count: 'exact' })
+  .eq('orderId', orderId);
+
+  if (count == 0) {
+    return false;
+  }
+
+  return true;
+};
+
+export const orderFormUpdate = async (orderId, orderData) => {
+  try {
+    await console.log(orderId);
+    await deleteOrderFromDatabase(orderId);
+    await console.log("deleted");
+    await insertOrderIntoDatabase(orderId, orderData);
+    console.log("inserted");
+    return { orderId };
+  } catch (error) {
+    throw createHttpError(500, 'Failed to update order. Please try again.');
+  }
+};
+
+const deleteOrderFromDatabase = async (orderId) => {
+  
+  // const { data, error: orderProductError } = await supabase
+  // .from('registeredOrderProduct')
+  // .delete()
+  // .eq('orderId', orderId)
+  // .select('*');
+
+  // if (orderProductError) {
+  //   throw createHttpError(500, `Failed to delete order-product relationships: ${orderProductError.message}`);
+  // }
+
+  // // Delete product if it is no longer referenced
+  // data.forEach(record => {
+  //   const { count, error: countError } = supabase
+  //     .from('registeredOrderProduct')
+  //     .select('*', { count: 'exact' })
+  //     .eq('productId', record.productId)
+  //     .neq(orderId);
+
+  //   if (countError) {
+  //     throw createHttpError(500,'Error checking references:', countError);
+  //   }
+  //   if (count === 0) {
+  //     const { error: productError } = supabase
+  //       .from('product')
+  //       .delete()
+  //       .eq('productId', record.productId);
+
+  //     if (productError) {
+  //       throw createHttpError(500,'Failed to delete product:', productError);
+  //     } 
+  //   }
+  // });
+
+  // const { error: registeredOrderError } = await supabase
+  // .from('registeredOrder')
+  // .delete()
+  // .eq('orderId', orderId)
+
+  // if (registeredOrderError) {
+  //   throw createHttpError(500, `Failed to delete registered order: ${registeredOrderError.message}`);
+  // }
+
+  const { error: orderError } = await supabase
+  .from('order')
+  .delete()
+  .eq('orderId', orderId)
+
+  if (orderError) {
+    console.log("Oh no", orderError.message);
+    throw createHttpError(500, `Failed to delete order: ${orderError.message}`);
+  }
+};
