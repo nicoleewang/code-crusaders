@@ -131,7 +131,7 @@ const validParams = {
           "unitCode": "LTR"
         },
         "item": {
-          "itemId": 1000045252,
+          "itemId": 45252,
           "description": "Red paint",
           "name": "Falu Rödfärg",
           "properties": {
@@ -152,7 +152,7 @@ const validParams = {
           "unitCode": "C62"
         },
         "item": {
-          "itemId": 1000054223,
+          "itemId": 54223,
           "description": "Very good pencils for red paint.",
           "name": "Pensel 20 mm",
           "properties": {
@@ -207,13 +207,17 @@ describe('POST /v1/order/create/form', () => {
 });
 
 describe('PUT /v1/order/{orderId}', () => {
-  test('should return 200 and an orderId', async () => {
-    const respon = await orderFormCreateRequest(validParams);
-    const orderId = JSON.parse(respon.body.toString()).orderId;
-
+  let orderId;
+  beforeEach(() => {
+    orderId = JSON.parse(orderFormCreateRequest(validParams).body.toString()).orderId;
+  });
+  test('Successful order update, should return 200 and an orderId', async () => {
+    // const respon = await orderFormCreateRequest(validParams);
+    // const orderId = JSON.parse(respon.body.toString()).orderId;
     const newParams = {...validParams};
     newParams.orderLines[0].lineItem.item.description = "Yellow paint";
-    
+    newParams.orderLines[0].lineItem.item.itemId = 10000000;
+   
     const res = await orderFormUpdateRequest(orderId, newParams);
     const body = JSON.parse(res.body.toString());
 
@@ -223,17 +227,29 @@ describe('PUT /v1/order/{orderId}', () => {
     expect(Number.isInteger(body.orderId)).toBe(true);
   });
 
-  // test('should return 400 and an error message', async () => {
-  //   const invalidParams = { ...validParams };
-  //   delete invalidParams.orderLines;
+  test('Invalid order data given, should return 400 and an error message', async () => {
+    const invalidParams = { ...validParams };
+    delete invalidParams.orderLines;
 
-  //   const res = await orderFormCreateRequest(invalidParams);
-  //   const body = JSON.parse(res.body.toString());
+    const res = await orderFormUpdateRequest(orderId, invalidParams);
+    const body = JSON.parse(res.body.toString());
 
-  //   expect(res.statusCode).toBe(400);
-  //   expect(body).toHaveProperty('error');
-  //   expect(typeof body.error).toBe('string');
-  // });
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test('Invalid order id given, should return 400 and an error message', async () => {
+    const newParams = {...validParams};
+    newParams.orderLines[0].lineItem.item.description = "Rainbow paint";
+
+    const res = await orderFormUpdateRequest(-1, newParams);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
 
   test.todo('should return 401 and an error message');
 });
