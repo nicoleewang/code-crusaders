@@ -106,17 +106,16 @@ router.get('/:orderId/pdf', authMiddleware, (req, res) => {
 // PUT /v1/order/{orderId}
 router.put('/:orderId', authMiddleware, async (req, res) => {
   const  orderId  = parseInt(req.params.orderId);
-  console.log(typeof orderId);
 
   try {
-    // validate request body
+    // validate request body and order id
     const { error } = orderSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: `Validation Error: ${error.message}` });
     }
-
-    if (!isOrderIdValid(orderId)) {
-      return res.status(400).json({ error: `Invalid orderId: ${error.message}` });
+    const isValid = await isOrderIdValid(orderId);
+    if (!isValid) {
+      return res.status(400).json({ error: `Invalid orderId given` });
     }
 
     // get response from controller
