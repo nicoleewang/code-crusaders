@@ -10,12 +10,12 @@ const url = config.url;
 // constants
 const email = 'test@example.com';
 const password = 'password123';
-const givenName = 'John';
-const familyName = 'Doe';
+const nameFirst = 'John';
+const nameLast = 'Doe';
 
 describe('POST /v1/user/register route', () => {
   test('success, registers user and returns 200 and token', async () => {
-    const res = await registerUserRequest(email, password, givenName, familyName);
+    const res = await registerUserRequest(email, password, nameFirst, nameLast);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);
@@ -41,7 +41,7 @@ describe('POST /v1/user/register route', () => {
     expect(error).toBeNull();  
     expect(data).not.toBeNull();
     expect(data.email).toBe(email);  
-    expect(data.givenName).toBe(givenName); 
-    expect(data.familyName).toBe(familyName); 
+    expect(data.nameFirst).toBe(nameFirst); 
+    expect(data.nameLast).toBe(nameLast); 
   });
 });
