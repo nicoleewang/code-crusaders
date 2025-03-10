@@ -1,6 +1,6 @@
 import express, { json } from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { orderFormCreate, orderFormUpdate, isOrderIdValid } from '../../controllers/orderController.js';
+import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 const router = express.Router();
 
@@ -104,11 +104,15 @@ router.get('/list', authMiddleware, (req, res) => {
 });
 
 // GET /v1/order/{orderId}
-router.get('/:orderId', authMiddleware, (req, res) => {
+router.get('/:orderId', authMiddleware, async (req, res) => {
   const { orderId } = req.params;
 
-  // replace the following with actual logic
-  res.json({ message: `Order details for ${orderId} fetched successfully` });
+  if (!orderId || !isOrderIdValid(isOrderIdValid)) {
+    return res.status(400).json({ error: 'Invalid orderId given' });
+  } else {
+    const response = await getOrderFromOrderId(orderId);
+    return res.status(200).json(response);
+  }
 });
 
 // GET /v1/order/{orderId}/pdf

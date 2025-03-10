@@ -38,3 +38,7 @@ export const orderFormUpdateRequest = (orderId, jsonOrderForm) => {
 export const orderBulkCreateRequest = (jsonOrderList) => {
   return requestHelper('POST', `/v1/order/create/bulk`, jsonOrderList);
 }
+
+export const getOrderFromOrderIdRequest = (orderId) => {
+  return requestHelper('GET', `/v1/order/${orderId}`);
+}

@@ -428,3 +428,7 @@ const deleteOrderFromDatabase = async (orderId) => {
     throw createHttpError(500, `Failed to delete order: ${orderError.message}`);
   }
 };
+
+export const getOrderFromOrderId = async (orderId) => {
+  return "hi"
+};
