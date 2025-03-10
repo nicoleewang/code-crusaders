@@ -1,6 +1,6 @@
 import express, { json } from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { orderFormCreate } from '../../controllers/orderController.js';
+import { orderFormCreate, orderFormUpdate, isOrderIdValid } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 const router = express.Router();
 
@@ -104,11 +104,28 @@ router.get('/:orderId/pdf', authMiddleware, (req, res) => {
 // *************** UPDATE ORDERS *************** //
 
 // PUT /v1/order/{orderId}
-router.put('/:orderId', authMiddleware, (req, res) => {
-  const { orderId } = req.params;
+router.put('/:orderId', authMiddleware, async (req, res) => {
+  const  orderId  = parseInt(req.params.orderId);
 
-  // replace the following with actual logic
-  res.json({ message: 'Order updated successfully' });
+  try {
+    // validate request body and order id
+    const { error } = orderSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: `Validation Error: ${error.message}` });
+    }
+    const isValid = await isOrderIdValid(orderId);
+    if (!isValid) {
+      return res.status(400).json({ error: `Invalid orderId given` });
+    }
+
+    // get response from controller
+    const response = await orderFormUpdate(orderId, req.body);
+
+    // send response
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // DELETE /v1/order/{orderId}
