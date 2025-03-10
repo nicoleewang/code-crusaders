@@ -1,5 +1,6 @@
 import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
+import { registerUser } from '../../controllers/userController.js';
 
 const router = express.Router();
 
@@ -8,10 +9,23 @@ const router = express.Router();
 // *************** USER AUTHENTICATION *************** //
 
 // POST /v1/user/register
-router.post('/register', (req, res) => {
-	// replace the following with actual logic
-	res.json({ message: 'User registered successfully' });
+router.post('/register', async (req, res) => {
+  const { email, password, nameFirst, nameLast } = req.body;
+
+  try {
+    const response = await registerUser(email, password, nameFirst, nameLast);
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+	  } else {
+      // unknown error
+      res.status(500).json({ error: 'Unexpected server error' });
+	  }
+  }
 });
+
+
 
 // POST /v1/user/login
 router.post('/login', (req, res) => {
