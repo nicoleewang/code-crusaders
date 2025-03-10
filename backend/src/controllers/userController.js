@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import supabase from '../config/db.js';
 
-export const registerUser = async (email, password, givenName, familyName) => {
+export const registerUser = async (email, password, nameFirst, nameLast) => {
   // checks if fields are provided
-  if (!email || !password || !givenName || !familyName) {
+  if (!email || !password || !nameFirst || !nameLast) {
     throw createHttpError(400, 'All fields are required');
   }
 
@@ -31,7 +31,7 @@ export const registerUser = async (email, password, givenName, familyName) => {
     // insert new user into supabase
     const { data, error: insertError } = await supabase
       .from('user')
-      .insert([{ email, password: hashedPW, givenName, familyName }])
+      .insert([{ email, password: hashedPW, nameFirst, nameLast }])
       .select();
 
     if (insertError) {
@@ -40,7 +40,7 @@ export const registerUser = async (email, password, givenName, familyName) => {
 
     // create JWT token
     const token = jwt.sign(
-      { userId: data.id, email: data.email }, 
+      { userId: data.id, email: data.email },
       process.env.JWT_SECRET,
       { expiresIn: '1h' } // optional
     );
@@ -49,7 +49,7 @@ export const registerUser = async (email, password, givenName, familyName) => {
     
   } catch (error) {
     if (!error.status) {
-      throw createHttpError(500, 'Unexpected server error');
+      throw createHttpError(500, 'Unexpected server error' + error);
     }
     throw error; 
   }
