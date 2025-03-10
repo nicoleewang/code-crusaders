@@ -16,26 +16,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                order:
-                  type: object
-                  description: Order contains general order details
-                buyer: 
-                  type: object
-                  description: Contains buyer-specific details
-                delivery:
-                  type: object
-                  description: Contains order related details
-                monetaryTotal:
-                  type: object
-                  description: Contains monetary values for the total order
-                orderLines:
-                  type: object
-                  description: Contains information of each item within this order
-                additionalDocumentReference:
-                  type: object
-                  description: Contains information on any additional supporting documents
+              $ref: '#/components/schemas/formParams'
       responses:
         200:
           description: OK
@@ -170,31 +151,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                order:
-                  type: object
-                  description: contains general order details
-                buyer:
-                  type: object
-                  description: contains buyer-specific details
-                seller:
-                  type: object
-                  description: contains seller-specific details
-                originator:
-                  type: object
-                  description: contains details about the originator of the order
-                transaction:
-                  type: object
-                  description: contains terms of the transaction
-                monetaryTotal:
-                  type: object
-                  description: contains monetary values for the total order
-                orderLines:
-                  type: array
-                  description: array containing info of each item within a specific order
-                  items:
-                    type: object
+              $ref: '#/components/schemas/formParams'
       responses:
         200:
           description: OK
@@ -662,3 +619,381 @@ components:
         numOrdersMonthly: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65]
         totalOrders: 1000
         totalAmountMonth: 2500.75
+
+    formParams:
+      type: object
+      required:
+        - order
+        - buyer
+        - seller
+        - delivery
+        - monetaryTotal
+        - orderLines
+      properties:
+        order:
+          type: object
+          properties:
+            note:
+              type: string
+              example: "Order note string"
+            documentCurrencyCode:
+              type: string
+              example: "AUD"
+            accountingCostCode:
+              type: string
+              example: "ACC-2024-001"
+            validityEndDate:
+              type: string
+              format: date
+              example: "2025-12-31"
+            quotationDocumentReferenceId:
+              type: string
+              example: "QDR-456789"
+            orderDocumentReferenceId:
+              type: string
+              example: "ORD-987654"
+            originatorDocumentReferenceId:
+              type: string
+              example: "ORG-123456"
+            contractType:
+              type: string
+              example: "Service Agreement"
+            contractId:
+              type: integer
+              example: 20240501
+        buyer:
+          type: object
+          properties:
+            buyerId:
+              type: string
+              minLength: 13
+              maxLength: 13
+              example: "1234567890123"
+            name:
+              type: string
+              example: "Buyer Name"
+            postalAddress:
+              type: object
+              required:
+                - postBox
+                - streetName
+                - buildingNumber
+                - department
+                - cityName
+                - postalZone
+                - countrySubentity
+                - countryCode
+              properties:
+                postBox: 
+                  type: string
+                  example: "PO box 123"
+                streetName: 
+                  type: string
+                  example: "Example street"
+                additionalStreetName: 
+                  type: string 
+                  example: "Additional example"
+                buildingNumber: 
+                  type: string
+                  example: "45A"
+                department:
+                  type: string 
+                  example: "Sales"
+                cityName: 
+                  type: string 
+                  example: "Sydney"
+                postalZone: 
+                  type: string 
+                  example: "2000"
+                countrySubentity: 
+                  type: string 
+                  example: "SYD"
+                countryCode:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  example: "AU"
+            taxScheme:
+              type: string
+              example: "VAT"
+            contact:
+              type: object
+              required:
+                - telephone
+                - email
+              properties:
+                telephone: 
+                  type: string 
+                  example: "+61 412 345 678"
+                telefax: 
+                  type: string 
+                  example: "+61 412 345 678"
+                email: 
+                  type: string
+                  format: email
+                  example: "buyer@example.com"
+            person:
+              type: object
+              required:
+                - firstName
+                - familyName
+                - jobTitle
+              properties:
+                firstName:
+                  type: string
+                  example: "John"
+                middleName: 
+                  type: string 
+                  example: "Adam"
+                familyName: 
+                  type: string
+                  example: "Smith"
+                jobTitle: 
+                  type: string
+                  example: "Example Manager"
+        seller:
+          type: object
+          properties:
+            sellerId:
+              type: string
+              minLength: 13
+              maxLength: 13
+              example: "1234567890123"
+            name:
+              type: string
+              example: "Seller Name"
+            postalAddress:
+              type: object
+              required:
+                - postBox
+                - streetName
+                - buildingNumber
+                - department
+                - cityName
+                - postalZone
+                - countrySubentity
+                - countryCode
+              properties:
+                postBox: 
+                  type: string
+                  example: "PO box 123"
+                streetName: 
+                  type: string
+                  example: "Example street"
+                additionalStreetName: 
+                  type: string 
+                  example: "Additional example"
+                buildingNumber: 
+                  type: string
+                  example: "45A"
+                department:
+                  type: string 
+                  example: "Sales"
+                cityName: 
+                  type: string 
+                  example: "Sydney"
+                postalZone: 
+                  type: string 
+                  example: "2000"
+                countrySubentity: 
+                  type: string 
+                  example: "SYD"
+                countryCode:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  example: "AU"
+            contact:
+              type: object
+              required:
+                - telephone
+                - email
+              properties:
+                telephone: 
+                  type: string 
+                  example: "+61 412 345 678"
+                telefax: 
+                  type: string 
+                  example: "+61 412 345 678"
+                email: 
+                  type: string
+                  format: email
+                  example: "seller@example.com"
+            person:
+              type: object
+              required:
+                - firstName
+                - familyName
+                - jobTitle
+              properties:
+                firstName:
+                  type: string
+                  example: "John"
+                middleName: 
+                  type: string 
+                  example: "Adam"
+                familyName: 
+                  type: string
+                  example: "Smith"
+                jobTitle: 
+                  type: string
+                  example: "Example Manager"
+        delivery:
+          type: object
+          properties:
+            deliveryAddress:
+              type: object
+              properties:
+                postBox: 
+                  type: string
+                  example: "PO box 123"
+                streetName: 
+                  type: string
+                  example: "Example street"
+                additionalStreetName: 
+                  type: string 
+                  example: "Additional example"
+                buildingNumber: 
+                  type: string
+                  example: "45A"
+                department:
+                  type: string 
+                  example: "Sales"
+                cityName: 
+                  type: string 
+                  example: "Sydney"
+                postalZone: 
+                  type: string 
+                  example: "2000"
+                countrySubentity: 
+                  type: string 
+                  example: "SYD"
+                countryCode:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  example: "AU"
+            requestedDeliveryPeriod:
+              type: object
+              properties:
+                startDate: 
+                  type: string
+                  format: date
+                endDate: 
+                  type: string
+                  format: date
+            deliveryParty:
+              type: object
+              properties:
+                deliveryPartyId: 
+                  type: integer
+                  example: 12345
+                name: 
+                  type: string 
+                  example: "Delivery Party Name"
+                telephone: 
+                  type: string
+                  exanple: "1300 123 456"
+                email: 
+                  type: string
+                  format: email
+                  example: "delivertparty@example.com"
+                telefax: 
+                  type: string 
+                  example: "1300 123 456"
+
+        monetaryTotal:
+          type: object
+          properties:
+            lineExtensionAmount: 
+              type: number 
+              number: 1500.00
+            taxTotal: 
+              type: number 
+              example: 300.00
+            allowanceCharge:
+              type: array
+              items:
+                type: object
+                properties:
+                  chargeIndicator: 
+                    type: boolean 
+                    example: true
+                  allowanceChargeReason: 
+                    type: string 
+                    example: "Example discount"
+                  amount: 
+                    type: number 
+                    example: 50.00
+        orderLines:
+          type: array
+          items:
+            type: object
+            properties:
+              note: 
+                type: string 
+                example: "Order note string"
+              lineItem:
+                type: object
+                properties:
+                  quantity: 
+                    type: number 
+                    example: 10
+                  totalTaxAmount: 
+                    type: number 
+                    example: 75.00
+                  price: 
+                    type: number 
+                    example: 15.00
+                  baseQuantity:
+                    type: object
+                    properties:
+                      quantity: 
+                        type: number 
+                        example: 1
+                      unitCode: 
+                        type: string 
+                        example: "unit123"
+                  item:
+                    type: object
+                    properties:
+                      itemId: 
+                        type: integer 
+                        example: 12345
+                      description: 
+                        type: string 
+                        example: "Example item description"
+                      name: 
+                        type: string 
+                        example: "Example item name"
+                      properties:
+                        type: object
+                        additionalProperties:
+                          type: string
+                        example: 
+                          "Color": "Black"
+
+        additionalDocumentReference:
+          type: array
+          items:
+            type: object
+            requured:
+              - documentType
+              - attachment
+            properties:
+              documentType: 
+                type: string 
+                example: "Example document"
+              attachment:
+                type: object
+                properties:
+                  uri: 
+                    type: string
+                    format: uri
+                    example: "https://example.com/document.pdf"
+                  binaryObject:
+                    type: string 
+                    example: "QmFzZTY0RW5jb2RlZFN0cmluZw=="
+                  mimeCode: 
+                    type: string 
+                    example: "application/pdf"
