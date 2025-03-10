@@ -1,5 +1,6 @@
 import config from '../../config/test.json';
 import { 
+  orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
 } from '../wrapper';
@@ -254,9 +255,9 @@ describe('PUT /v1/order/{orderId}', () => {
   test.todo('should return 401 and an error message');
 });
 
-describe('POST /v1/order/create/bulk', async () => {
+describe('POST /v1/order/create/bulk', () => {
   test('should return 200 and an array of orderIds', async () => {
-    const res = await orderFormCreateRequest([validParams, validParams, validParams]);
+    const res = await orderBulkCreateRequest({ orders: [validParams, validParams, validParams] });
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);
@@ -270,7 +271,7 @@ describe('POST /v1/order/create/bulk', async () => {
     const invalidParams = [{ ...validParams }, { ...validParams }];
     delete invalidParams[0].order;
 
-    const res = await orderFormCreateRequest(invalidParams);
+    const res = await orderBulkCreateRequest({ orders: invalidParams });
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(400);
