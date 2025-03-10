@@ -34,3 +34,8 @@ export const orderFormCreateRequest = (jsonOrderForm) => {
 export const orderFormUpdateRequest = (orderId, jsonOrderForm) => {
   return requestHelper('PUT', `/v1/order/${orderId}`, jsonOrderForm );
 }
+
+export const registerUserRequest = (email, password, givenName, familyName) => {
+  const payload = { email, password, givenName, familyName };
+  return requestHelper('POST', '/v1/user/register', payload);
+};

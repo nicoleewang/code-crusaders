@@ -1,5 +1,6 @@
 import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
+import { registerUser } from '../../controllers/userController.js';
 
 const router = express.Router();
 
@@ -8,10 +9,18 @@ const router = express.Router();
 // *************** USER AUTHENTICATION *************** //
 
 // POST /v1/user/register
-router.post('/register', (req, res) => {
-	// replace the following with actual logic
-	res.json({ message: 'User registered successfully' });
+router.post('/register', async (req, res) => {
+  const { email, password, givenName, familyName } = req.body;
+
+  try {
+    const response = await registerUser(email, password, givenName, familyName);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error:', error);
+  }
 });
+
+
 
 // POST /v1/user/login
 router.post('/login', (req, res) => {
