@@ -1,5 +1,6 @@
 import config from '../../config/test.json';
 import { 
+  orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
 } from '../wrapper';
@@ -253,3 +254,30 @@ describe('PUT /v1/order/{orderId}', () => {
 
   test.todo('should return 401 and an error message');
 });
+
+describe('POST /v1/order/create/bulk', () => {
+  test('should return 200 and an array of orderIds', async () => {
+    const res = await orderBulkCreateRequest({ orders: [validParams, validParams, validParams] });
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('orderIds');
+    expect(Array.isArray(body.orderIds)).toBe(true);
+    expect(body.orderIds.length).toBe(3);
+    expect(body.orderIds.every(id => Number.isInteger(id))).toBe(true);
+  });
+
+  test('should return 400 and an error message', async () => {
+    const invalidParams = [{ ...validParams }, { ...validParams }];
+    delete invalidParams[0].order;
+
+    const res = await orderBulkCreateRequest({ orders: invalidParams });
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test.todo('should return 401 and an error message');
+})

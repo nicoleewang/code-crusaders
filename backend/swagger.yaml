@@ -33,30 +33,38 @@ paths:
         401:
           $ref: "#/components/responses/UnauthorizedResponse"
 
-  /v1/order/create/csv:
+  /v1/order/create/bulk:
     post:
-      summary: Creates a csv version of an order created
-      description: Creates a standardised 2.1 UBL Order document based on data provided in a CSV file
+      summary: Create multiple orders in bulk
+      description: Accepts an array of order document data and creates multiple orders.
       tags:
-      - Order
-      parameters:
-        - in: path
-          name: csvFile
-          required: true
-          description: csv file being uploaded
-          schema:
-            type: string
+        - Order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orders:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/formParams'
+              required:
+                - orders
       responses:
-        200:
-          description: OK
+        '200':
+          description: Orders created successfully.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  orderId:
-                    type: integer
-                    example: 12345
+                  orderIds:
+                    type: array
+                    items:
+                      type: integer
+                      example: 1242
         400:
           $ref: "#/components/responses/BadRequestResponse"
         401:
@@ -68,13 +76,16 @@ paths:
       description: Creates a standardised 2.1 UBL Order document based on data provided in a PDF file
       tags:
       - Order
-      parameters:
-        - in: path
-          name: pdfFile
-          required: true
-          description: pdf file being uploaded
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pdfFile:
+                  type: string
+                  description: PDF file being uploaded
       responses:
         200:
           description: OK
@@ -117,7 +128,7 @@ paths:
       summary: Gets a specific order of a user
       description: Gets a particular UBL Order Document
       tags:
-      - Order
+        - Order
       parameters:
         - in: path
           name: orderId
@@ -140,12 +151,19 @@ paths:
           $ref: "#/components/responses/BadRequestResponse"
         401:
           $ref: "#/components/responses/UnauthorizedResponse"
-
+  
     put:
       summary: Updates the information of an order
       description: Update information on a UBL Order Document
       tags:
-      - Order
+        - Order
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          description: ID of the particular document to update
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -168,7 +186,7 @@ paths:
       summary: Deletes a UBL Order Document
       description: Deletes a particular UBL Order Document identified by orderId
       tags:
-      - Order
+        - Order
       parameters:
         - in: path
           name: orderId
@@ -187,6 +205,7 @@ paths:
           $ref: "#/components/responses/BadRequestResponse"
         401:
           $ref: "#/components/responses/UnauthorizedResponse"
+
 
   /v1/user/register:
     post:
@@ -893,7 +912,7 @@ components:
                   example: "Delivery Party Name"
                 telephone: 
                   type: string
-                  exanple: "1300 123 456"
+                  example: "1300 123 456"
                 email: 
                   type: string
                   format: email
@@ -907,7 +926,7 @@ components:
           properties:
             lineExtensionAmount: 
               type: number 
-              number: 1500.00
+              example: 1500.00
             taxTotal: 
               type: number 
               example: 300.00
@@ -977,7 +996,7 @@ components:
           type: array
           items:
             type: object
-            requured:
+            required:
               - documentType
               - attachment
             properties:
