@@ -3,7 +3,8 @@ import authMiddleware from '../../middleware/authMiddleware.js';
 import { 
 	registerUser,
 	loginUser,
-  logoutUser
+  logoutUser,
+	getUserDetails
 } from '../../controllers/userController.js';
 import cookieParser from 'cookie-parser';
 
@@ -91,8 +92,13 @@ router.post('/reset', (req, res) => {
 // *************** USER INFORMATION *************** //
 
 // GET /v1/user/details
-router.get('/details', authMiddleware, (req, res) => {
-	res.json({ message: 'User details fetched successfully' });
+router.get('/details', authMiddleware, async (req, res) => {
+	try {
+		const response = await getUserDetails(req.user.email);
+		res.status(200).json(response);
+	} catch (error) {
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 });
 
 // PUT /v1/user/details

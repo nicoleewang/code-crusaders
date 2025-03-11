@@ -46,9 +46,9 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
 
     // generate JWT token
     const token = jwt.sign(
-      { email: user.email,
-        nameFirst: user.nameFirst, 
-        nameLast: user.nameLast 
+      { email: user[0].email,
+        nameFirst: user[0].nameFirst, 
+        nameLast: user[0].nameLast 
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' } //optional
@@ -124,4 +124,22 @@ export const logoutUser = async (req, res) => {
   } catch (error) {
     throw error; 
   }
+};
+
+export const getUserDetails = async (email) => {
+  const { data: user, error: fetchError } = await supabase
+      .from('user')
+      .select('*')
+      .eq('email', email);
+
+    if (fetchError) {
+      throw createHttpError(500, `Failed to fetch user details: ${fetchError.message}`);
+    }
+
+    return {
+      email: user[0].email,
+      nameFirst: user[0].nameFirst, 
+      nameLast: user[0].nameLast
+    }
+
 };
