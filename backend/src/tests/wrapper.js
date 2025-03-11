@@ -45,6 +45,12 @@ export const loginUserRequest = (email, password) => {
   return requestHelper('POST', '/v1/user/login', payload);
 };
 
+export const logoutUserRequest = (token) => {
+  return requestHelper('POST', '/v1/user/logout', null, {
+    Authorization: `Bearer ${token}`, 
+  });
+};
+
 export const orderBulkCreateRequest = (jsonOrderList) => {
   return requestHelper('POST', `/v1/order/create/bulk`, jsonOrderList);
 }

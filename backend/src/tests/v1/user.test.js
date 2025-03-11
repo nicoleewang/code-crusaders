@@ -3,7 +3,7 @@ import supabase from '../../config/db.js';
 import { 
   registerUserRequest,
   loginUserRequest,
-  // logoutUserRequest
+  logoutUserRequest
 } from '../wrapper';
 
 const port = config.port;
@@ -133,5 +133,24 @@ describe('POST /v1/user/login route', () => {
 
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error', 'Invalid email or password');
+  });
+});
+
+describe('POST /v1/user/logout route', () => {
+  let token;
+  // register before test
+  registerUserRequest('logout@example.com', 'password123', 'John', 'Doe');
+
+  beforeAll(async () => {
+    // log in before test
+    const loginResponse = await loginUserRequest('logout@example.com', 'password123');
+    console.log('Login Response in Test:', loginResponse);
+    token = loginResponse.token;
+    console.log('token:', token);
+  });
+
+  test('success, logs out and returns 200', async () => {
+    const res = await logoutUserRequest(token); 
+    expect(res.statusCode).toBe(200);
   });
 });

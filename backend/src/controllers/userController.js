@@ -2,6 +2,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import supabase from '../config/db.js';
+import express from 'express'; 
+import cookieParser from 'cookie-parser';
+
+// cookies omnom
+const app = express();
+app.use(cookieParser());
 
 export const registerUser = async (email, password, nameFirst, nameLast) => {
   // checks if fields are provided
@@ -48,7 +54,7 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
       { expiresIn: '1h' } //optional
     );
 
-    return { token: token };
+    return { token };
     
   } catch (error) {
     if (!error.status) {
@@ -95,18 +101,27 @@ export const loginUser = async (email, password) => {
       const token = jwt.sign(
         { email: user.email,
           nameFirst: user.nameFirst, 
-          nameLast: user.familyName 
+          nameLast: user.nameLast 
         },
         process.env.JWT_SECRET,
         { expiresIn: '1h' } //optional
       );
-    
-    return { token: token };
+
+    return { token };
 
   } catch (error) {
     if (!error.status) {
       throw createHttpError(500, 'Unexpected server error' + error);
     }
+    throw error; 
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    // clear cookie
+    res.clearCookie('authToken', { httpOnly: true, secure: true });
+  } catch (error) {
     throw error; 
   }
 };
