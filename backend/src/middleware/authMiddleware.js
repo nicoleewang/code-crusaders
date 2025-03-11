@@ -1,23 +1,30 @@
-// !!!! The following is just an example. You should implement proper token validation logic. !!!! //
-
+import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
 
 // Middleware to verify the token and attach user info to the request
 const authMiddleware = (req, res, next) => {
-	// const token = req.header('Authorization')?.split(' ')[1]; // Extract token from "Bearer <token>"
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
-	// if (!token) {
-	//     return res.status(401).json({ message: 'Access denied. No token provided.' });
-	// }
+  // token doesn't exist
+  if (!token) {
+    return next(createHttpError(401, 'Unauthorized: Token is required'));
+  }
 
-	// try {
-	//     const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify token
-	//     req.user = decoded; // Attach user info to request
-	//     next(); // Proceed to the route handler
-	// } catch (error) {
-	//     res.status(401).json({ message: 'Invalid token' });
-	// }
-	next();
+  try {
+    // verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next(); 
+  } catch (error) {
+    // token errors
+    if (error.name === 'TokenExpiredError') {
+      return next(createHttpError(401, 'Unauthorized: Token expired'));
+    } else if (error.name === 'JsonWebTokenError') {
+      return next(createHttpError(401, 'Unauthorized: Invalid token'));
+    } else {
+      return next(createHttpError(401, 'Unauthorized: Token verification failed'));
+    }
+  }
 };
 
 export default authMiddleware;
