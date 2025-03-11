@@ -2,7 +2,8 @@ import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { 
 	registerUser,
-	loginUser
+	loginUser,
+	getUserDetails
 } from '../../controllers/userController.js';
 
 const router = express.Router();
@@ -68,8 +69,13 @@ router.post('/reset', (req, res) => {
 // *************** USER INFORMATION *************** //
 
 // GET /v1/user/details
-router.get('/details', authMiddleware, (req, res) => {
-	res.json({ message: 'User details fetched successfully' });
+router.get('/details', authMiddleware, async (req, res) => {
+	try {
+		const response = await getUserDetails(req.user.email);
+		res.status(200).json(response);
+	} catch (error) {
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 });
 
 // PUT /v1/user/details
