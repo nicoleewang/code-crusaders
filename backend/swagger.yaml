@@ -138,12 +138,12 @@ paths:
             type: integer
       responses:
         200: 
-          description: OK
-          content:
-            application/xml:
-              schema:
-                type: string
-                example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n  <Order xmlns=\"urn:oasis:names:specification:ubl:schema:xsd:Order-2\">\n  <OrderID>12345</OrderID>\n  <OrderDate>2025-03-10</OrderDate>\n  <!-- other XML content -->\n</Order>"
+        description: OK
+        content:
+          application/xml:
+            schema:
+              type: string
+              example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Order xmlns=\"urn:oasis:names:specification:ubl:schema:xsd:Order-2\">\n  <OrderID>12345</OrderID>\n  <OrderDate>2025-03-10</OrderDate>\n  <!-- other XML content -->\n</Order>"
         400:
           $ref: "#/components/responses/BadRequestResponse"
         401:
