@@ -41,8 +41,8 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
     // create JWT token
     const token = jwt.sign(
       { email: user.email,
-        nameFirst: user.givenName, 
-        nameLast: user.familyName 
+        nameFirst: user.nameFirst, 
+        nameLast: user.nameLast 
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' } //optional
@@ -94,7 +94,7 @@ export const loginUser = async (email, password) => {
       // create JWT token
       const token = jwt.sign(
         { email: user.email,
-          nameFirst: user.givenName, 
+          nameFirst: user.nameFirst, 
           nameLast: user.familyName 
         },
         process.env.JWT_SECRET,
