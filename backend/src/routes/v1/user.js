@@ -28,8 +28,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-
-
 // POST /v1/user/login
 router.post('/login', async (req, res) => {
 	const { email, password } = req.body;
