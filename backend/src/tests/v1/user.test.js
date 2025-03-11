@@ -1,7 +1,8 @@
 import config from '../../config/test.json';
 import supabase from '../../config/db.js';
 import { 
-  registerUserRequest
+  registerUserRequest,
+  loginUserRequest
 } from '../wrapper';
 
 const port = config.port;
@@ -83,5 +84,53 @@ describe('POST /v1/user/register route', () => {
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'User already exists');
     });
+  });
+});
+
+describe('POST /v1/user/login route', () => {
+  // register user for each test 
+  registerUserRequest('guy@example.com', password, nameFirst, nameLast);
+
+  test('success, logs in and returns 200 and token', async () => {
+    const res = await loginUserRequest('guy@example.com', password);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('token');
+    expect(typeof body.token).toBe('string');
+  });
+
+  describe('error, missing a field', () => {
+    test('email', async () => {
+      const res = await loginUserRequest('', password);
+      const body = JSON.parse(res.body.toString());
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'All fields are required');
+    });
+
+    test('password', async () => {
+      const res = await loginUserRequest('guy@example.com', '');
+      const body = JSON.parse(res.body.toString());
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'All fields are required');
+    });
+  });
+
+  test('error, user not found', async () => {
+    const res = await loginUserRequest('nonexistent@example.com', password);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error', 'User not found');
+  });
+
+  test('error, incorrect password', async () => {
+    const res = await loginUserRequest('guy@example.com', 'wrongPW69');
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error', 'Invalid email or password');
   });
 });

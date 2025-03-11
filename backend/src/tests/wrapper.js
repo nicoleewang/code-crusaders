@@ -39,6 +39,12 @@ export const registerUserRequest = (email, password, nameFirst, nameLast) => {
   const payload = { email, password, nameFirst, nameLast };
   return requestHelper('POST', '/v1/user/register', payload);
 };
+
+export const loginUserRequest = (email, password) => {
+  const payload = { email, password };
+  return requestHelper('POST', '/v1/user/login', payload);
+};
+
 export const orderBulkCreateRequest = (jsonOrderList) => {
   return requestHelper('POST', `/v1/order/create/bulk`, jsonOrderList);
 }
