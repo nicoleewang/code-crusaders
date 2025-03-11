@@ -38,7 +38,7 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
       throw createHttpError(500, 'Error creating user in database');
     }
 
-    // create JWT token
+    // generate JWT token
     const token = jwt.sign(
       { email: user.email,
         nameFirst: user.nameFirst, 
@@ -100,7 +100,7 @@ export const loginUser = async (email, password) => {
         process.env.JWT_SECRET,
         { expiresIn: '1h' } //optional
       );
-
+    
     return { token: token };
 
   } catch (error) {

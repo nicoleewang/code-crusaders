@@ -2,7 +2,8 @@ import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { 
 	registerUser,
-	loginUser
+	loginUser,
+  // logoutUser
 } from '../../controllers/userController.js';
 
 const router = express.Router();
@@ -46,10 +47,10 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /v1/user/logout
-router.post('/logout', authMiddleware, (req, res) => {
-	// replace the following with actual logic
-	res.json({ message: 'User logged out successfully' });
+router.post('/logout', authMiddleware, async (req, res) => {
+
 });
+
 
 // *************** PASSWORD MANAGEMENT *************** //
 

@@ -2,7 +2,8 @@ import config from '../../config/test.json';
 import supabase from '../../config/db.js';
 import { 
   registerUserRequest,
-  loginUserRequest
+  loginUserRequest,
+  // logoutUserRequest
 } from '../wrapper';
 
 const port = config.port;
