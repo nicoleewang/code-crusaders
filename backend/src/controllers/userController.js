@@ -54,3 +54,53 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
     throw error; 
   }
 };
+
+export const loginUser = async (email, password) => {
+  // checks if fields are provided
+  if (!email || !password) {
+    throw createHttpError(400, 'All fields are required');
+  }
+
+  try {
+     // find user by email
+     const { data: user, error: findError } = await supabase
+      .from('user')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+      // error handling
+      if (!user || findError) {
+        throw createHttpError(401, 'User not found');
+      }
+
+      // compare passwords
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        throw createHttpError(401, 'Invalid email or password');
+      }
+
+      if (!process.env.JWT_SECRET) {
+        throw createHttpError(500, 'Server configuration error');
+      }
+
+      // generate JWT token
+      const token = jwt.sign(
+        { id: user.id, 
+          email: user.email, 
+          nameFirst: user.givenName, 
+          nameLast: user.familyName 
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' } //optional
+      );
+
+    return { token: token };
+
+  } catch (error) {
+    if (!error.status) {
+      throw createHttpError(500, 'Unexpected server error' + error);
+    }
+    throw error; 
+  }
+};
