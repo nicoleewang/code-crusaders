@@ -2,7 +2,8 @@ import config from '../../config/test.json';
 import supabase from '../../config/db.js';
 import { 
   registerUserRequest,
-  loginUserRequest
+  loginUserRequest,
+  getUserDetailsRequest
 } from '../wrapper';
 
 const port = config.port;
@@ -132,5 +133,26 @@ describe('POST /v1/user/login route', () => {
 
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error', 'Invalid email or password');
+  });
+});
+
+describe('GET /v1/user/detail', () => { 
+  const token =  JSON.parse(registerUserRequest('details@example.com', password, nameFirst, nameLast).body).token;
+
+  test('Successfully retrieves user details and returns 200', async () => {
+    const res = await getUserDetailsRequest(token);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toStrictEqual({email: 'details@example.com', nameFirst, nameLast});
+  });
+
+  test('Invalid token, return 401', async () => {
+    const res = await loginUserRequest('guy@example.com', 'wrongPW69');
+    const body = JSON.parse(res.body.toString());
+  
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
   });
 });
