@@ -430,5 +430,15 @@ const deleteOrderFromDatabase = async (orderId) => {
 };
 
 export const getOrderFromOrderId = async (orderId) => {
-  return "hi"
+  const { data: order, error } = await supabase
+  .from('order')
+  .select('*')
+  .eq('orderId', orderId)
+  .single();
+
+  if (error) {
+    throw createHttpError(500, `Failed to fetch order: ${error.message}`);
+  }
+  console.log(order.xml);
+  return order.xml;
 };

@@ -2,6 +2,7 @@ import express, { json } from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
+
 const router = express.Router();
 
 // !!! this file is just for parsing the request and sending a response (see the first route for an example). the actual logic should be implemented in controllers. !!! //
@@ -106,12 +107,16 @@ router.get('/list', authMiddleware, (req, res) => {
 // GET /v1/order/{orderId}
 router.get('/:orderId', authMiddleware, async (req, res) => {
   const { orderId } = req.params;
-
-  if (!orderId || !isOrderIdValid(isOrderIdValid)) {
-    return res.status(400).json({ error: 'Invalid orderId given' });
-  } else {
-    const response = await getOrderFromOrderId(orderId);
-    return res.status(200).json(response);
+  try {
+    if (!orderId || !isOrderIdValid(isOrderIdValid)) {
+      return res.status(400).json({ error: 'Invalid orderId given' });
+    } else {
+      const xmlResponse = await getOrderFromOrderId(orderId);
+      res.setHeader('Content-Type', 'application/xml');
+      return res.status(200).send(xmlResponse);
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error", error });
   }
 });
 
