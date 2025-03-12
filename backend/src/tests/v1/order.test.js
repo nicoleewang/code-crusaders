@@ -1,15 +1,10 @@
-import config from '../../config/test.json';
 import { 
   orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
   registerUserRequest
 } from '../wrapper';
-
-const port = config.port;
-const url = config.url;
-
-const token =  JSON.parse(registerUserRequest('orders@example.com', 'password', 'nameFirst', 'nameLast').body).token;
+import supabase from '../../config/db.js';
 
 const validParams = {
   "order": {
@@ -184,9 +179,30 @@ const validParams = {
   ]
 }
 
+const password = 'password123';
+const nameFirst = 'John';
+const nameLast = 'Doe';
+const email = 'testUser@example.com'
+
+let token;
+
+beforeEach(async () => {
+  const res = await registerUserRequest(email, password, nameFirst, nameLast);
+  const body = JSON.parse(res.body.toString());
+  token = body.token;
+});
+
+afterEach(async () => {
+  const { error } = await supabase.from('user').delete().eq('email', email);
+
+  if (error) {
+    throw new createHttpError(500, removeError.message);
+  }
+});
+
 describe('POST /v1/order/create/form', () => {
   test('should return 200 and an orderId', async () => {
-    const res = await orderFormCreateRequest(validParams,token);
+    const res = await orderFormCreateRequest(validParams, token);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);

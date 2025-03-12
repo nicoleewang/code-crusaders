@@ -1,4 +1,3 @@
-import config from '../../config/test.json';
 import supabase from '../../config/db.js';
 import { 
   registerUserRequest,
@@ -6,9 +5,6 @@ import {
   logoutUserRequest,
   getUserDetailsRequest
 } from '../wrapper';
-
-const port = config.port;
-const url = config.url;
 
 // constants
 const password = 'password123';
@@ -45,6 +41,12 @@ describe('POST /v1/user/register route', () => {
     expect(setCookieHeader[0]).toMatch(/authToken=/); 
     expect(setCookieHeader[0]).toMatch(/HttpOnly/);
     expect(setCookieHeader[0]).toMatch(/Secure/); 
+
+    const { removeError } = await supabase.from('user').delete().eq('email', email1);
+
+    if (removeError) {
+      throw new createHttpError(500, removeError.message);
+    }
   });
 
   describe('error, missing a field', () => {
@@ -98,10 +100,21 @@ describe('POST /v1/user/register route', () => {
 
 describe('POST /v1/user/login route', () => {
   // register user for each test 
-  registerUserRequest('guy@example.com', password, nameFirst, nameLast);
+  const email = 'guy@example.com'
+  beforeEach(async () => {
+    await registerUserRequest(email, password, nameFirst, nameLast);
+  });
+
+  afterEach(async () => {
+    const { error } = await supabase.from('user').delete().eq('email', email);
+  
+    if (error) {
+      throw new createHttpError(500, removeError.message);
+    }
+  });
 
   test('success, logs in and returns 200 and token', async () => {
-    const res = await loginUserRequest('guy@example.com', password);
+    const res = await loginUserRequest(email, password);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);
@@ -142,7 +155,7 @@ describe('POST /v1/user/login route', () => {
   });
 
   test('error, incorrect password', async () => {
-    const res = await loginUserRequest('guy@example.com', 'wrongPW69');
+    const res = await loginUserRequest(email, 'wrongPW69');
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(401);
@@ -187,7 +200,22 @@ describe('POST /v1/user/logout route', () => {
 });
 
 describe('GET /v1/user/details', () => { 
-  const token =  JSON.parse(registerUserRequest('getDetails@example.com', password, nameFirst, nameLast).body).token;
+  let token;
+  const email = 'getDetails@example.com'
+  
+  beforeEach(async () => {
+    const res = await registerUserRequest(email, password, nameFirst, nameLast);
+    const body = JSON.parse(res.body.toString());
+    token = body.token;
+  });
+
+  afterEach(async () => {
+    const { error } = await supabase.from('user').delete().eq('email', email);
+  
+    if (error) {
+      throw new createHttpError(500, removeError.message);
+    }
+  });
 
   test('Successfully retrieves user details and returns 200', async () => {
     const res = await getUserDetailsRequest(token);
