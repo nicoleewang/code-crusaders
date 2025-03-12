@@ -38,6 +38,13 @@ describe('POST /v1/user/register route', () => {
     expect(data.email).toBe(email1);  
     expect(data.nameFirst).toBe(nameFirst); 
     expect(data.nameLast).toBe(nameLast); 
+
+    // verify the Set-Cookie header
+    const setCookieHeader = res.headers['set-cookie'];
+    expect(setCookieHeader).toBeDefined();
+    expect(setCookieHeader[0]).toMatch(/authToken=/); 
+    expect(setCookieHeader[0]).toMatch(/HttpOnly/);
+    expect(setCookieHeader[0]).toMatch(/Secure/); 
   });
 
   describe('error, missing a field', () => {
@@ -100,6 +107,12 @@ describe('POST /v1/user/login route', () => {
     expect(res.statusCode).toBe(200);
     expect(body).toHaveProperty('token');
     expect(typeof body.token).toBe('string');
+    // verify the Set-Cookie header
+    const setCookieHeader = res.headers['set-cookie'];
+    expect(setCookieHeader).toBeDefined();
+    expect(setCookieHeader[0]).toMatch(/authToken=/); 
+    expect(setCookieHeader[0]).toMatch(/HttpOnly/);
+    expect(setCookieHeader[0]).toMatch(/Secure/); 
   });
 
   describe('error, missing a field', () => {
