@@ -428,3 +428,32 @@ const deleteOrderFromDatabase = async (orderId) => {
     throw createHttpError(500, `Failed to delete order: ${orderError.message}`);
   }
 };
+
+export const orderList = async () => {
+  try {
+    const { data: orders, error: findError } = await supabase 
+      .from('order')
+      .select('xml')
+
+    if (findError) {
+      throw createHttpError(500, 'Database error');
+    }
+    
+    const ublOrderDocuments = [];
+    for (const order of orders) {
+      if (order && order.xml) {
+        ublOrderDocuments.push(order.xml);
+      }
+    }
+
+    console.log(ublOrderDocuments);
+    
+    return { ublOrderDocuments };
+
+  } catch (error) {
+    if (!error.status) {
+      throw createHttpError(500, 'Unexpected server error' + error);
+    }
+    throw error; 
+  }
+};

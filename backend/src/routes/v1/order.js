@@ -1,6 +1,11 @@
 import express, { json } from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { orderFormCreate, orderFormUpdate, isOrderIdValid } from '../../controllers/orderController.js';
+import { 
+  orderFormCreate, 
+  orderFormUpdate, 
+  isOrderIdValid,
+  orderList
+ } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 const router = express.Router();
 
@@ -99,8 +104,17 @@ router.delete('/received/:orderId', authMiddleware, (req, res) => {
 
 // GET /v1/order/list
 router.get('/list', authMiddleware, (req, res) => {
-  // replace the following with actual logic
-  res.json({ message: 'Order list fetched successfully' });
+  try {
+    const response = orderList();
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+	  } else {
+      // unknown error
+      res.status(500).json({ error: 'Unexpected server error' });
+	  }
+  }
 });
 
 // GET /v1/order/{orderId}

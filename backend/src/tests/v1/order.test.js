@@ -3,7 +3,8 @@ import {
   orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
-  registerUserRequest
+  registerUserRequest,
+  orderListRequest
 } from '../wrapper';
 
 const port = config.port;
@@ -284,3 +285,18 @@ describe('POST /v1/order/create/bulk', () => {
 
   test.todo('should return 401 and an error message');
 })
+
+describe('GET /v1/order/list route', () => {
+  // create an order 
+  orderFormCreateRequest(validParams, token);
+
+  test.only('success, returns 200 and array of orders', async () => {
+    const res = await orderListRequest(token);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('ublOrderDocuments');
+    expect(Array.isArray(body.ublOrderDocuments)).toBe(true);
+    expect(body.ublOrderDocuments.length).toBeGreaterThan(0);
+  });
+});
