@@ -186,37 +186,59 @@ const email = 'testUser@example.com'
 
 let token;
 
-beforeEach(async () => {
-  const res = await registerUserRequest(email, password, nameFirst, nameLast);
-  const body = JSON.parse(res.body.toString());
-  token = body.token;
-});
-
-afterEach(async () => {
-  const { error } = await supabase.from('user').delete().eq('email', email);
+export const deleteUserFromDB = async (e) => {
+  const { error } = await supabase.from('user').delete().eq('email', e);
 
   if (error) {
-    throw new createHttpError(500, removeError.message);
+    throw new createHttpError(500, error.message);
   }
+}
+
+const retry = async (fn, retries = 5, delay = 1000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("Operation failed after multiple retries.");
+};
+
+beforeAll(async () => {
+  await retry(async () => {
+    await deleteUserFromDB(email);
+    const res = await registerUserRequest(email, password, nameFirst, nameLast);
+    
+    if (!res || !res.body || !res.body.token) {
+      throw new Error("Failed to register user and retrieve token.");
+    }
+
+    token = res.body.token;
+  });
+});
+
+afterAll(async () => {
+  await deleteUserFromDB(email);
 });
 
 describe('POST /v1/order/create/form', () => {
   test('should return 200 and an orderId', async () => {
     const res = await orderFormCreateRequest(validParams, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(200);
     expect(body).toHaveProperty('orderId');
     expect(typeof body.orderId).toBe('number');
     expect(Number.isInteger(body.orderId)).toBe(true);
-  });
+});
 
   test('should return 400 and an error message', async () => {
     const invalidParams = { ...validParams };
     delete invalidParams.order;
 
     const res = await orderFormCreateRequest(invalidParams, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
@@ -225,7 +247,7 @@ describe('POST /v1/order/create/form', () => {
 
   test('should return 401 and an error message', async () => {
     const res = await orderFormCreateRequest(validParams, "imInvalid");
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error');
@@ -235,8 +257,9 @@ describe('POST /v1/order/create/form', () => {
 
 describe('PUT /v1/order/{orderId}', () => {
   let orderId;
-  beforeEach(() => {
-    orderId = JSON.parse(orderFormCreateRequest(validParams, token).body.toString()).orderId;
+  beforeEach(async () => {
+    const res = await orderFormCreateRequest(validParams, token)
+    orderId = res.body.orderId;
   });
   test('Successful order update, should return 200 and an orderId', async () => {
     // const respon = await orderFormCreateRequest(validParams);
@@ -246,7 +269,7 @@ describe('PUT /v1/order/{orderId}', () => {
     newParams.orderLines[0].lineItem.item.itemId = 10000000;
    
     const res = await orderFormUpdateRequest(orderId, newParams, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(200);
     expect(body).toHaveProperty('orderId');
@@ -259,7 +282,7 @@ describe('PUT /v1/order/{orderId}', () => {
     delete invalidParams.orderLines;
 
     const res = await orderFormUpdateRequest(orderId, invalidParams, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
@@ -271,7 +294,7 @@ describe('PUT /v1/order/{orderId}', () => {
     newParams.orderLines[0].lineItem.item.description = "Rainbow paint";
 
     const res = await orderFormUpdateRequest(-1, newParams, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
@@ -284,7 +307,7 @@ describe('PUT /v1/order/{orderId}', () => {
 describe('POST /v1/order/create/bulk', () => {
   test('should return 200 and an array of orderIds', async () => {
     const res = await orderBulkCreateRequest({ orders: [validParams, validParams, validParams] }, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(200);
     expect(body).toHaveProperty('orderIds');
@@ -298,7 +321,7 @@ describe('POST /v1/order/create/bulk', () => {
     delete invalidParams[0].order;
 
     const res = await orderBulkCreateRequest({ orders: invalidParams }, token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
@@ -307,7 +330,7 @@ describe('POST /v1/order/create/bulk', () => {
 
   test('should return 401 and an error message', async () => {
     const res = await orderBulkCreateRequest({ orders: [validParams, validParams, validParams] }, "imInvalid");
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error');

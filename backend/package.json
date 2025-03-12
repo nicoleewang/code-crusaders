@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
+    "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -22,6 +23,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
     "pg": "^8.13.3",
     "postgres": "^3.4.5",
     "swagger-jsdoc": "^6.2.8",
