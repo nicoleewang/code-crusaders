@@ -223,7 +223,14 @@ describe('POST /v1/order/create/form', () => {
     expect(typeof body.error).toBe('string');
   });
 
-  test.todo('should return 401 and an error message');
+  test('should return 401 and an error message', async () => {
+    const res = await orderFormCreateRequest(validParams, "imInvalid");
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
 });
 
 describe('PUT /v1/order/{orderId}', () => {
