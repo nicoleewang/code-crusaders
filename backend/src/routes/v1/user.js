@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
   try {
     const response = await registerUser(email, password, nameFirst, nameLast);
      // set cookie 
-    res.cookie('token', response.token, { httpOnly: true, secure: true });
+    res.cookie('authToken', response.token, { httpOnly: true, secure: true });
     res.status(200).json(response);
   } catch (error) {
     if (error.status) {
@@ -43,11 +43,8 @@ router.post('/login', async (req, res) => {
 
 	try {
 		const response = await loginUser(email, password);
-
-    console.log('Login Response:', response);
-
     // set cookie 
-    res.cookie('token', response.token, { httpOnly: true, secure: true });
+    res.cookie('authToken', response.token, { httpOnly: true, secure: true });
 		res.status(200).json(response);
 	} catch (error) {
     if (error.status) {

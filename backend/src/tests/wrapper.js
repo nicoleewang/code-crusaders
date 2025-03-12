@@ -47,9 +47,7 @@ export const loginUserRequest = (email, password) => {
 };
 
 export const logoutUserRequest = (token) => {
-  return requestHelper('POST', '/v1/user/logout', null, {
-    Authorization: `Bearer ${token}`, 
-  });
+  return requestHelper('POST', '/v1/user/logout', {}, token);
 };
 
 export const orderBulkCreateRequest = (jsonOrderList, token) => {

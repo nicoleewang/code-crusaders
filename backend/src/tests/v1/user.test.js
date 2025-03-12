@@ -144,15 +144,32 @@ describe('POST /v1/user/logout route', () => {
 
   beforeAll(async () => {
     // log in before test
-    const loginResponse = await loginUserRequest('logout@example.com', 'password123');
-    console.log('Login Response in Test:', loginResponse);
-    token = loginResponse.token;
-    console.log('token:', token);
+    token = JSON.parse(loginUserRequest('logout@example.com', 'password123').body).token
   });
 
   test('success, logs out and returns 200', async () => {
     const res = await logoutUserRequest(token); 
+    const body = res.body.toString().trim();
+
     expect(res.statusCode).toBe(200);
+    expect(body).toBe('');
+    const setCookieHeader = res.headers['set-cookie'];
+    // verify the cookie is cleared
+    expect(setCookieHeader).toBeDefined(); 
+    expect(setCookieHeader[0]).toMatch(/authToken=;/); 
+    expect(setCookieHeader[0]).toMatch(/Expires=/); 
+  });
+
+  test('error, invalid token', async () => {
+    const res = await logoutUserRequest('invalidToken');
+    const body = JSON.parse(res.body.toString()); 
+
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error', 'Invalid token');
+    expect(typeof body.error).toBe('string');
+     // check header is undefined
+    const setCookieHeader = res.headers['set-cookie'];
+    expect(setCookieHeader).toBeUndefined();
   });
 });
 
@@ -167,12 +184,12 @@ describe('GET /v1/user/details', () => {
     expect(body).toStrictEqual({email: 'getDetails@example.com', nameFirst, nameLast});
   });
 
-  // test('Invalid token, return 401', async () => {
-  //   const res = await getUserDetailsRequest('Invalid Token Given');
-  //   const body = JSON.parse(res.body.toString());
+  test('Invalid token, return 401', async () => {
+    const res = await getUserDetailsRequest('Invalid Token Given');
+    const body = JSON.parse(res.body.toString()); 
   
-  //   expect(res.statusCode).toBe(401);
-  //   expect(body).toHaveProperty('error');
-  //   expect(typeof body.error).toBe('string');
-  // });
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error', 'Invalid token');
+    expect(typeof body.error).toBe('string');
+  });
 });

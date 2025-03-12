@@ -6,24 +6,20 @@ const authMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return next(createHttpError(401, 'Token is required'));
+    return res.status(401).json({ error: 'Token is required' });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = decoded; 
     next();
-
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      return next(createHttpError(401, 'Token expired'));
-
+      return res.status(401).json({ error: 'Token expired' });
     } else if (error.name === 'JsonWebTokenError') {
-      return next(createHttpError(401, 'Invalid token'));
-
+      return res.status(401).json({ error: 'Invalid token' });
     } else {
-      return next(createHttpError(401, 'Token verification failed'));
-      
+      return res.status(401).json({ error: 'Token verification failed' });
     }
   }
 };
