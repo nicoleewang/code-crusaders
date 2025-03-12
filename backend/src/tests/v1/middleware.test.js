@@ -1,6 +1,4 @@
-import config from '../../config/test.json';
 import jwt from 'jsonwebtoken';
-import createHttpError from 'http-errors';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import dotenv from 'dotenv';
 
@@ -15,59 +13,75 @@ describe('authMiddleware', () => {
   const expiredToken = jwt.sign({ userId: 123 }, 'your_secret_key', { expiresIn: '-1s' });
   const invalidToken = 'invalid.token.string';
 
-  test('should throw 401 if token is missing', () => {
-    const req = { headers: {} };
+  const mockRes = () => {
     const res = {};
+    res.status = jest.fn().mockReturnThis(); // Allows chaining (e.g., res.status().json())
+    res.json = jest.fn();
+    return res;
+  };
+
+  test('should return 401 if token is missing', () => {
+    const req = { headers: {} };
+    const res = mockRes();
     const next = jest.fn();
 
     authMiddleware(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 401, message: 'Token is required' }));
+    expect(res.status).toHaveBeenCalledWith(401); // Check status
+    expect(res.json).toHaveBeenCalledWith({ error: 'Token is required' }); // Check error message
+    expect(next).not.toHaveBeenCalled(); // next() should not be called
   });
 
   test('should return decoded payload for a valid token', () => {
     const req = { headers: { authorization: `Bearer ${validToken}` } };
-    const res = {};
+    const res = mockRes();
     const next = jest.fn();
 
     authMiddleware(req, res, next);
 
-    expect(req.user).toHaveProperty('userId', 123);
-    expect(next).toHaveBeenCalledTimes(1); 
-    expect(next).toHaveBeenCalledWith(); 
+    expect(req.user).toHaveProperty('userId', 123); // User info should be attached
+    expect(next).toHaveBeenCalledTimes(1); // next() should be called
+    expect(res.status).not.toHaveBeenCalled(); // No error response
+    expect(res.json).not.toHaveBeenCalled(); // No error message
   });
 
-  test('should throw 401 if token is expired', () => {
+  test('should return 401 if token is expired', () => {
     const req = { headers: { authorization: `Bearer ${expiredToken}` } };
-    const res = {};
+    const res = mockRes();
     const next = jest.fn();
 
     authMiddleware(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 401, message: 'Token expired' }));
+    expect(res.status).toHaveBeenCalledWith(401); // Check status
+    expect(res.json).toHaveBeenCalledWith({ error: 'Token expired' }); // Check error message
+    expect(next).not.toHaveBeenCalled(); // next() should not be called
   });
 
-  test('should throw 401 if token is invalid', () => {
+  test('should return 401 if token is invalid', () => {
     const req = { headers: { authorization: `Bearer ${invalidToken}` } };
-    const res = {};
+    const res = mockRes();
     const next = jest.fn();
 
     authMiddleware(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 401, message: 'Invalid token' }));
+    expect(res.status).toHaveBeenCalledWith(401); // Check status
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid token' }); // Check error message
+    expect(next).not.toHaveBeenCalled(); // next() should not be called
   });
 
-  test('should throw 401 for unexpected verification errors', () => {
+  test('should return 401 for unexpected verification errors', () => {
     const req = { headers: { authorization: `Bearer ${validToken}` } };
-    const res = {};
+    const res = mockRes();
     const next = jest.fn();
 
     jest.spyOn(jwt, 'verify').mockImplementation(() => { throw new Error('Unknown error'); });
 
     authMiddleware(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 401, message: 'Token verification failed' }));
+    expect(res.status).toHaveBeenCalledWith(401); // Check status
+    expect(res.json).toHaveBeenCalledWith({ error: 'Token verification failed' }); // Check error message
+    expect(next).not.toHaveBeenCalled(); // next() should not be called
 
-    jwt.verify.mockRestore(); 
+    jwt.verify.mockRestore(); // Restore original implementation
   });
 });

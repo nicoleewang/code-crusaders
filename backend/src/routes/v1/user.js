@@ -3,8 +3,14 @@ import authMiddleware from '../../middleware/authMiddleware.js';
 import { 
 	registerUser,
 	loginUser,
+  logoutUser,
 	getUserDetails
 } from '../../controllers/userController.js';
+import cookieParser from 'cookie-parser';
+
+// cookies omnom
+const app = express();
+app.use(cookieParser());
 
 const router = express.Router();
 
@@ -18,6 +24,8 @@ router.post('/register', async (req, res) => {
 
   try {
     const response = await registerUser(email, password, nameFirst, nameLast);
+     // set cookie 
+    res.cookie('authToken', response.token, { httpOnly: true, secure: true });
     res.status(200).json(response);
   } catch (error) {
     if (error.status) {
@@ -35,6 +43,8 @@ router.post('/login', async (req, res) => {
 
 	try {
 		const response = await loginUser(email, password);
+    // set cookie 
+    res.cookie('authToken', response.token, { httpOnly: true, secure: true });
 		res.status(200).json(response);
 	} catch (error) {
     if (error.status) {
@@ -47,10 +57,20 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /v1/user/logout
-router.post('/logout', authMiddleware, (req, res) => {
-	// replace the following with actual logic
-	res.json({ message: 'User logged out successfully' });
+router.post('/logout', authMiddleware, async (req, res) => {
+  try {
+    const response = await logoutUser(req, res);
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+	  } else {
+      // unknown error
+      res.status(500).json({ error: 'Unexpected server error' });
+	  }
+  }
 });
+
 
 // *************** PASSWORD MANAGEMENT *************** //
 
