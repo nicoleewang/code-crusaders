@@ -1,11 +1,15 @@
 import config from '../../config/test.json';
 import { 
+  orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
+  registerUserRequest
 } from '../wrapper';
 
 const port = config.port;
 const url = config.url;
+
+const token =  JSON.parse(registerUserRequest('orders@example.com', 'password', 'nameFirst', 'nameLast').body).token;
 
 const validParams = {
   "order": {
@@ -182,7 +186,7 @@ const validParams = {
 
 describe('POST /v1/order/create/form', () => {
   test('should return 200 and an orderId', async () => {
-    const res = await orderFormCreateRequest(validParams);
+    const res = await orderFormCreateRequest(validParams,token);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);
@@ -195,7 +199,7 @@ describe('POST /v1/order/create/form', () => {
     const invalidParams = { ...validParams };
     delete invalidParams.order;
 
-    const res = await orderFormCreateRequest(invalidParams);
+    const res = await orderFormCreateRequest(invalidParams, token);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(400);
@@ -209,7 +213,7 @@ describe('POST /v1/order/create/form', () => {
 describe('PUT /v1/order/{orderId}', () => {
   let orderId;
   beforeEach(() => {
-    orderId = JSON.parse(orderFormCreateRequest(validParams).body.toString()).orderId;
+    orderId = JSON.parse(orderFormCreateRequest(validParams, token).body.toString()).orderId;
   });
   test('Successful order update, should return 200 and an orderId', async () => {
     // const respon = await orderFormCreateRequest(validParams);
@@ -218,7 +222,7 @@ describe('PUT /v1/order/{orderId}', () => {
     newParams.orderLines[0].lineItem.item.description = "Yellow paint";
     newParams.orderLines[0].lineItem.item.itemId = 10000000;
    
-    const res = await orderFormUpdateRequest(orderId, newParams);
+    const res = await orderFormUpdateRequest(orderId, newParams, token);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(200);
@@ -231,7 +235,7 @@ describe('PUT /v1/order/{orderId}', () => {
     const invalidParams = { ...validParams };
     delete invalidParams.orderLines;
 
-    const res = await orderFormUpdateRequest(orderId, invalidParams);
+    const res = await orderFormUpdateRequest(orderId, invalidParams, token);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(400);
@@ -243,7 +247,7 @@ describe('PUT /v1/order/{orderId}', () => {
     const newParams = {...validParams};
     newParams.orderLines[0].lineItem.item.description = "Rainbow paint";
 
-    const res = await orderFormUpdateRequest(-1, newParams);
+    const res = await orderFormUpdateRequest(-1, newParams, token);
     const body = JSON.parse(res.body.toString());
 
     expect(res.statusCode).toBe(400);
@@ -253,3 +257,30 @@ describe('PUT /v1/order/{orderId}', () => {
 
   test.todo('should return 401 and an error message');
 });
+
+describe('POST /v1/order/create/bulk', () => {
+  test('should return 200 and an array of orderIds', async () => {
+    const res = await orderBulkCreateRequest({ orders: [validParams, validParams, validParams] }, token);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('orderIds');
+    expect(Array.isArray(body.orderIds)).toBe(true);
+    expect(body.orderIds.length).toBe(3);
+    expect(body.orderIds.every(id => Number.isInteger(id))).toBe(true);
+  });
+
+  test('should return 400 and an error message', async () => {
+    const invalidParams = [{ ...validParams }, { ...validParams }];
+    delete invalidParams[0].order;
+
+    const res = await orderBulkCreateRequest({ orders: invalidParams }, token);
+    const body = JSON.parse(res.body.toString());
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test.todo('should return 401 and an error message');
+})

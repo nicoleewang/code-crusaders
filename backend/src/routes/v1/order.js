@@ -27,10 +27,28 @@ router.post('/create/form', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /v1/order/create/csv
-router.post('/create/csv', authMiddleware, (req, res) => {
-  // replace the following with actual logic
-  res.json({ message: 'Order CSV uploaded successfully' });
+// POST /v1/order/create/bulk
+router.post('/create/bulk', authMiddleware, async (req, res) => {
+  try {
+    const { orders } = req.body;
+    if (!Array.isArray(orders)) {
+      return res.status(400).json({ error: 'Invalid orderList given' });
+    } else {
+      let orderIds = [];
+      for (const order of orders) {
+        const { error } = orderSchema.validate(order);
+        if (error) {
+          return res.status(400).json({ error: `Validation Error: ${error.message}` });
+        } else {
+          const response = await orderFormCreate(order);
+          orderIds.push(response.orderId);
+        }
+      }
+      return res.status(200).json({ orderIds });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // POST /v1/order/create/pdf
