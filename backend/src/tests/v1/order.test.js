@@ -1,10 +1,14 @@
 import { 
   orderBulkCreateRequest,
+  orderCSVCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
   registerUserRequest
 } from '../wrapper';
 import supabase from '../../config/db.js';
+import fs from 'fs';
+import path from 'path';
+import FormData from 'form-data';
 
 const validParams = {
   "order": {
@@ -335,5 +339,32 @@ describe('POST /v1/order/create/bulk', () => {
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
+  });
+})
+
+describe('POST /v1/order/create/csv', () => {
+  let csvOrderParams = { ...validParams };
+  delete csvOrderParams.orderLines
+
+  test('should return 200 and orderId', async () => {
+    // Path to the CSV file inside the assets folder
+    const filePath = path.join(__dirname, '../assets/products.csv');
+
+    // Ensure the file exists before proceeding
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Test file not found: ${filePath}`);
+    }
+
+    // Create form-data for file upload
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(filePath)); // Attach the CSV file
+    formData.append('json', JSON.stringify(csvOrderParams)); // Attach JSON payload
+
+    // Make request using formData
+    const res = await orderCSVCreateRequest(formData, token);
+
+    // Assertions
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('message', 'File and JSON received successfully');
   });
 })

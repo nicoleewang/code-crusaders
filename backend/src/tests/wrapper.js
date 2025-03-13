@@ -56,3 +56,6 @@ export const orderBulkCreateRequest = async (jsonOrderList, token) =>
 
 export const getUserDetailsRequest = async (token) =>
   requestHelper('GET', '/v1/user/details', {}, token);
+
+export const orderCSVCreateRequest = async (orderData, token) =>
+  requestHelper('POST', '/v1/order/create/csv', orderData, token)

@@ -3,6 +3,7 @@ import authMiddleware from '../../middleware/authMiddleware.js';
 import { orderFormCreate, orderFormUpdate, isOrderIdValid } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // !!! this file is just for parsing the request and sending a response (see the first route for an example). the actual logic should be implemented in controllers. !!! //
 
@@ -51,10 +52,32 @@ router.post('/create/bulk', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /v1/order/create/pdf
-router.post('/create/pdf', authMiddleware, (req, res) => {
-  // replace the following with actual logic
-  res.json({ message: 'Order PDF uploaded successfully' });
+// POST /v1/order/create/csv
+router.post('/create/csv', authMiddleware, upload.single('file'), (req, res) => {
+  try {
+    // Extract JSON data
+    const jsonData = req.body;
+
+    // Extract CSV file (if provided)
+    if (!req.file) {
+      return res.status(400).json({ error: "CSV file is required" });
+    }
+
+    // Process the CSV file (req.file.buffer contains the file content)
+    const csvBuffer = req.file.buffer.toString('utf-8');
+
+    // Example: Log received data
+    console.log('JSON Data:', jsonData);
+    console.log('CSV Content:', csvBuffer);
+
+    // TODO: Further processing (e.g., parse CSV, validate JSON, save to DB, etc.)
+
+    res.status(200).json({ message: "File and JSON received successfully" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // **************** SEND ORDERS **************** //
