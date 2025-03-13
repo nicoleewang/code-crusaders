@@ -2,7 +2,8 @@ import {
   orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
-  registerUserRequest
+  registerUserRequest,
+  orderDeleteRequest,
 } from '../wrapper';
 import supabase from '../../config/db.js';
 
@@ -337,3 +338,52 @@ describe('POST /v1/order/create/bulk', () => {
     expect(typeof body.error).toBe('string');
   });
 })
+
+describe('DELETE /v1/order/{orderId}', () => {
+  let orderId;
+  beforeEach(async () => {
+    const res = await orderFormCreateRequest(validParams, token)
+    orderId = res.body.orderId;
+  });
+  test('Successfully deleted order, should return 200 and empty object', async () => {   
+    const { data: preDeletionData, error: preDeletionError } = await supabase
+      .from('order')
+      .select('*')
+      .eq('orderId', orderId)
+      .single();
+
+    expect(preDeletionError).toBeNull();
+    expect(preDeletionData.orderId).toStrictEqual(orderId);
+    
+    const res = await orderDeleteRequest(orderId, token);
+    const body = res.body;
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toStrictEqual({});
+
+    const { error: postDeletionError } = await supabase
+      .from('order')
+      .select('*')
+      .eq('orderId', orderId)
+      .single();
+
+    expect(postDeletionError).not.toBeNull();  
+  });
+
+  test('Invalid orderId, should return 400 and an error message', async () => {
+    const res = await orderDeleteRequest(-1,token);
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test('Invalid token, return 401', async () => {
+      const res = await orderDeleteRequest(orderId,'InvalidTokenGiven');
+    
+      expect(res.statusCode).toBe(401);
+      expect(res.body).toHaveProperty('error', 'Invalid token');
+      expect(typeof res.body.error).toBe('string');
+  });
+});
