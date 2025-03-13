@@ -395,7 +395,7 @@ const generateXML = (orderData, orderId) => {
 }
 
 export const isOrderIdValid = async (orderId) => {
-  const { count, error } = await supabase
+  const { count } = await supabase
   .from('order')
   .select('*', { count: 'exact' })
   .eq('orderId', orderId);

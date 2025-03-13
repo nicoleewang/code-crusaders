@@ -1,4 +1,3 @@
-import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
 
 // Middleware to verify the token and attach user info to the request

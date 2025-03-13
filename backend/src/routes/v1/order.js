@@ -1,4 +1,3 @@
-import express, { json } from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { orderFormCreate, orderFormUpdate, isOrderIdValid, orderDelete } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
@@ -73,7 +72,7 @@ router.get('/sent/list', authMiddleware, (req, res) => {
 
 // DELETE /v1/order/sent/{orderId}
 router.delete('/sent/:orderId', authMiddleware, (req, res) => {
-  const { orderId } = req.params;
+  // const { orderId } = req.params;
 
   // replace the following with actual logic
   res.json({ message: 'Sent order deleted successfully' });
@@ -89,7 +88,7 @@ router.get('/received/list', authMiddleware, (req, res) => {
 
 // DELETE /v1/order/received/{orderId}
 router.delete('/received/:orderId', authMiddleware, (req, res) => {
-  const { orderId } = req.params;
+  // const { orderId } = req.params;
 
   // replace the following with actual logic
   res.json({ message: 'Received order deleted successfully' });
