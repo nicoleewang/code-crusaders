@@ -2,6 +2,9 @@ import express, { json } from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { orderFormCreate, orderFormUpdate, isOrderIdValid } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
+import multer from 'multer'
+import { validateCSV } from './helpers.js';
+
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -9,6 +12,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // *************** CREATE ORDERS *************** //
 
+// POST /v1/order/create/form
 router.post('/create/form', authMiddleware, async (req, res) => {
   try {
     // validate request body
@@ -53,30 +57,22 @@ router.post('/create/bulk', authMiddleware, async (req, res) => {
 });
 
 // POST /v1/order/create/csv
-router.post('/create/csv', authMiddleware, upload.single('file'), (req, res) => {
+router.post('/create/csv', upload.single('file'), authMiddleware, async (req, res) => {
   try {
-    // Extract JSON data
-    const jsonData = req.body;
+    const jsonData = JSON.parse(req.body.json);
+    const csvContent = req.file.buffer.toString('utf-8');
 
-    // Extract CSV file (if provided)
-    if (!req.file) {
-      return res.status(400).json({ error: "CSV file is required" });
+    const validation = validateCSV(csvContent)
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
     }
 
-    // Process the CSV file (req.file.buffer contains the file content)
-    const csvBuffer = req.file.buffer.toString('utf-8');
-
-    // Example: Log received data
-    console.log('JSON Data:', jsonData);
-    console.log('CSV Content:', csvBuffer);
-
-    // TODO: Further processing (e.g., parse CSV, validate JSON, save to DB, etc.)
-
-    res.status(200).json({ message: "File and JSON received successfully" });
+    const response = await orderFormCreate(jsonData, csvContent);
+    res.status(200).json(response);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error('Error processing CSV upload:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
