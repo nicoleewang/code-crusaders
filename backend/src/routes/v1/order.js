@@ -1,6 +1,8 @@
+import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { orderFormCreate, orderFormUpdate, isOrderIdValid, orderDelete } from '../../controllers/orderController.js';
+import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId, orderDelete } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
+
 const router = express.Router();
 
 // !!! this file is just for parsing the request and sending a response (see the first route for an example). the actual logic should be implemented in controllers. !!! //
@@ -103,11 +105,19 @@ router.get('/list', authMiddleware, (req, res) => {
 });
 
 // GET /v1/order/{orderId}
-router.get('/:orderId', authMiddleware, (req, res) => {
+router.get('/:orderId', authMiddleware, async (req, res) => {
   const { orderId } = req.params;
-
-  // replace the following with actual logic
-  res.json({ message: `Order details for ${orderId} fetched successfully` });
+  try {
+    if (!orderId || !(await isOrderIdValid(orderId))) {
+      return res.status(400).json({ error: 'Invalid orderId given' });
+    } else {
+      const xmlResponse = await getOrderFromOrderId(orderId);
+      res.setHeader('Content-Type', 'application/xml');
+      return res.status(200).send(xmlResponse);
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error", error });
+  }
 });
 
 // GET /v1/order/{orderId}/pdf
