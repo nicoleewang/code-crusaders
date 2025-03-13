@@ -2,6 +2,8 @@ import axios from 'axios';
 import config from '../config/test.json';
 import FormData from 'form-data';
 import fs from 'fs'
+import supabase from '../config/db.js';
+import createHttpError from 'http-errors';
 
 const port = config.port;
 const url = config.url;
@@ -47,8 +49,8 @@ export const requestHelper = async (method, path, payload = {}, token = '', file
       },
       timeout: TIMEOUT_MS,
       ...(method.toUpperCase() === 'GET' || method.toUpperCase() === 'DELETE'
-        ? { params: payload }  // Use `params` for GET & DELETE requests
-        : { data: payload })   // Use `data` for POST, PUT, etc.
+        ? { params: payload } // Use `params` for GET & DELETE requests
+        : { data: payload }) // Use `data` for POST, PUT, etc.
     });
 
     return {
@@ -62,6 +64,15 @@ export const requestHelper = async (method, path, payload = {}, token = '', file
       body: error.response?.data || { message: 'Internal Server Error' },
       headers: error.response?.headers || {},
     };
+  }
+};
+
+// Clear User From Database
+export const deleteUserFromDB = async (e) => {
+  const { error } = await supabase.from('user').delete().eq('email', e);
+
+  if (error) {
+    throw createHttpError(500, error.message);
   }
 };
 
@@ -93,7 +104,7 @@ export const orderCSVCreateRequest = async (filePath, orderData, token) =>
 
 export const getOrderFromOrderIdRequest = (orderId, token) => {
   return requestHelper('GET', `/v1/order/${orderId}`, {}, token);
-}
+};
 
 export const orderDeleteRequest = async (orderId, token) =>
   requestHelper('DELETE', `/v1/order/${orderId}`, {}, token);
