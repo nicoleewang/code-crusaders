@@ -57,6 +57,6 @@ export const orderBulkCreateRequest = async (jsonOrderList, token) =>
 export const getUserDetailsRequest = async (token) =>
   requestHelper('GET', '/v1/user/details', {}, token);
 
-export const getOrderFromOrderIdRequest = (orderId) => {
-  return requestHelper('GET', `/v1/order/${orderId}`);
+export const getOrderFromOrderIdRequest = (orderId, token) => {
+  return requestHelper('GET', `/v1/order/${orderId}`, {}, token);
 }

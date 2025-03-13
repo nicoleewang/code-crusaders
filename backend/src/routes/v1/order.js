@@ -108,9 +108,11 @@ router.get('/list', authMiddleware, (req, res) => {
 router.get('/:orderId', authMiddleware, async (req, res) => {
   const { orderId } = req.params;
   try {
-    if (!orderId || !isOrderIdValid(isOrderIdValid)) {
+    if (!orderId || !(await isOrderIdValid(orderId))) {
+    console.log('hi')
       return res.status(400).json({ error: 'Invalid orderId given' });
     } else {
+      console.log('im valid')
       const xmlResponse = await getOrderFromOrderId(orderId);
       res.setHeader('Content-Type', 'application/xml');
       return res.status(200).send(xmlResponse);
