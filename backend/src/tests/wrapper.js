@@ -1,6 +1,6 @@
 import axios from 'axios';
 import config from '../config/test.json';
-import supabase from '../../config/db.js';
+import supabase from '../config/db.js';
 import createHttpError from 'http-errors';
 
 const port = config.port;
