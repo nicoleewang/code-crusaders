@@ -2,12 +2,12 @@ import createHttpError from 'http-errors';
 import supabase from '../config/db.js';
 import { create } from 'xmlbuilder2';
 
-export const orderFormCreate = async (orderData) => {
+export const orderFormCreate = async (orderData, userEmail) => {
   try {
     // Generate a unique order ID
     const orderId = Math.floor(Math.random() * 1000000);
 
-    await insertOrderIntoDatabase(orderId, orderData); 
+    await insertOrderIntoDatabase(orderId, orderData, userEmail); 
 
     return { orderId: orderId };
 
@@ -16,7 +16,7 @@ export const orderFormCreate = async (orderData) => {
   }
 };
 
-const insertOrderIntoDatabase = async (orderId, orderData) => {
+const insertOrderIntoDatabase = async (orderId, orderData, userEmail) => {
   const { xml, totalCost } = generateXML(orderData, orderId);
 
   // Insert order into the database
@@ -31,7 +31,7 @@ const insertOrderIntoDatabase = async (orderId, orderData) => {
   // Insert registered order into the database
   const { error: registeredOrderError } = await supabase
   .from('registeredOrder')
-  .insert([{ orderId, cost: totalCost }]);
+  .insert([{ orderId, cost: totalCost, creator: userEmail }]);
 
   if (registeredOrderError) {
     throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
@@ -407,10 +407,10 @@ export const isOrderIdValid = async (orderId) => {
   return true;
 };
 
-export const orderFormUpdate = async (orderId, orderData) => {
+export const orderFormUpdate = async (orderId, orderData, userEmail) => {
   try {
     await deleteOrderFromDatabase(orderId);
-    await insertOrderIntoDatabase(orderId, orderData);
+    await insertOrderIntoDatabase(orderId, orderData, userEmail);
 
     return { orderId };
   } catch (error) {
