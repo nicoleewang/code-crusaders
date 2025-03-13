@@ -5,6 +5,8 @@ import supabase from '../config/db.js';
 import express from 'express'; 
 import cookieParser from 'cookie-parser';
 
+const validator = require('validator');
+
 // cookies omnom
 const app = express();
 app.use(cookieParser());
@@ -13,6 +15,44 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
   // checks if fields are provided
   if (!email || !password || !nameFirst || !nameLast) {
     throw createHttpError(400, 'All fields are required');
+  }
+
+  const isEmailValid = validator.isEmail(email);
+  if (!isEmailValid) {
+    throw createHttpError(400, 'Invalid email');
+  }
+
+  // length
+  if (password.length < 8) {
+    throw createHttpError(400, 'Password is too short');
+  }
+
+  // upper case char
+  if (!(/[A-Z]/.test(password))) {
+    throw createHttpError(400, 'Password requires an uppercase character');
+  } 
+  
+  // lower case char
+  if (!(/[a-z]/.test(password))) {
+    throw createHttpError(400, 'Password requires a lowercase character');
+  } 
+  
+  // number
+  if (!(/[0-9]/.test(password))) {
+    throw createHttpError(400, 'Password requires a number');
+  }
+
+  // special char
+  if (!(/[!@#$%^&*(),.?":{}|<>]/.test(password))) {
+    throw createHttpError(400, 'Password requires a special character');
+  }
+
+  // invalid character in name
+  if ((/[!@#$%^&*(),.?":{}|<>]/.test(nameFirst)) || 
+      (/[!@#$%^&*(),.?":{}|<>]/.test(nameLast)) || 
+      (/[0-9]/.test(nameFirst)) || 
+      (/[0-9]/.test(nameLast))) {
+        throw createHttpError(400, 'Invalid character in name');
   }
 
   try {
