@@ -482,19 +482,31 @@ const generateXML = (orderData, orderId) => {
   };
 }
 
+/**
+ * checks whether an orderId exists in the database
+ * @param {integer} orderId - id of the order being checked
+ * @returns {boolean} - true if valid, false if not
+ */
 export const isOrderIdValid = async (orderId) => {
   const { count, error } = await supabase
-  .from('order')
-  .select('*', { count: 'exact' })
-  .eq('orderId', orderId);
+    .from('order')
+    .select('*', { count: 'exact', head: true })
+    .eq('orderId', orderId);
 
-  if (count == 0) {
+  if (error) {
     return false;
   }
 
-  return true;
+  return count > 0;
 };
 
+/**
+  * Given a valid orderId it updates the order in the database with the specified orderData.
+  *
+  * @param {integer} orderId - the order id belonging to the order to be deleted
+  * @param {object} orderData - contains the order details which have been validated by the orderSchema
+  * @returns {orderId: integer} - returns orderId of updated order
+*/
 export const orderFormUpdate = async (orderId, orderData) => {
   try {
     await deleteOrderFromDatabase(orderId);
@@ -506,6 +518,14 @@ export const orderFormUpdate = async (orderId, orderData) => {
   }
 };
 
+/**
+  * Given a valid orderId it deletes the order from the database. Assumes that the database(Supabase)
+  * uses cascading deletion to delete the records in associated table i.e., registeredOrder, registeredOrderProduct.
+  * Also assumes that the products in an order can exist separate to the order.
+  *
+  * @param {integer} orderId - the order id belonging to the order to be deleted
+  * @returns {object} - returns an empty object
+*/
 const deleteOrderFromDatabase = async (orderId) => {
   const { error: orderError } = await supabase
   .from('order')
@@ -515,4 +535,38 @@ const deleteOrderFromDatabase = async (orderId) => {
   if (orderError) {
     throw createHttpError(500, `Failed to delete order: ${orderError.message}`);
   }
+};
+
+/**
+  * Given a valid orderId it deletes the order from the database.
+  *
+  * @param {integer} orderId - the order id belonging to the order to be deleted
+  * @returns {object} - returns an empty object
+*/
+export const orderDelete = async (orderId) => {
+  try {
+    await deleteOrderFromDatabase(orderId);
+    return {};
+  } catch (error) {
+    throw createHttpError(500, 'Failed to update order. Please try again.');
+  }
+};
+
+/*
+ * returns an xml order document from the given orderId
+ * @param {integer} orderId - orderId of the order being retrieved
+ * @returns {string} - xml document as a string
+ */
+export const getOrderFromOrderId = async (orderId) => {
+  const { data: order, error } = await supabase
+  .from('order')
+  .select('*')
+  .eq('orderId', orderId)
+  .single();
+
+  if (error) {
+    throw createHttpError(500, `Failed to fetch order: ${error.message}`);
+  }
+
+  return order.xml;
 };

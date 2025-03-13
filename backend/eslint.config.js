@@ -1,12 +1,16 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import pluginReact from "eslint-plugin-react";
+import react from "eslint-plugin-react";
+import jest from "eslint-plugin-jest";
 
+import { defineConfig } from "eslint/config";
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
-  {files: ["**/*.{js,mjs,cjs,jsx}"]},
-  {languageOptions: { globals: globals.browser }},
-  pluginJs.configs.recommended,
-  pluginReact.configs.flat.recommended,
-];
+export default defineConfig([
+  {
+    files: ["src/**/*.js"],
+    plugins: {
+        jest, react
+    },
+    rules: {
+        "no-unused-vars": ["error", { "caughtErrors": "none" }]
+    }
+  }
+]);

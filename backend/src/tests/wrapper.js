@@ -90,3 +90,10 @@ export const getUserDetailsRequest = async (token) =>
 
 export const orderCSVCreateRequest = async (filePath, orderData, token) =>
   requestHelper('POST', '/v1/order/create/csv', orderData, token, filePath)
+
+export const getOrderFromOrderIdRequest = (orderId, token) => {
+  return requestHelper('GET', `/v1/order/${orderId}`, {}, token);
+}
+
+export const orderDeleteRequest = async (orderId, token) =>
+  requestHelper('DELETE', `/v1/order/${orderId}`, {}, token);
