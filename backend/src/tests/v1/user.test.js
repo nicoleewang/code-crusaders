@@ -87,40 +87,40 @@ describe('POST /v1/user/register route', () => {
   });
 
   describe('password errors', () => {
-    test('password too short', () => {
-      const res = registerUserRequest('pw@example.com', 'Pw1!', nameFirst, nameLast);
+    test('password too short', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Pw1!', nameFirst, nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password is too short');
     });
 
-    test("password doesn't contain capital letter", () => {
-      const res = registerUserRequest('pw@example.com', 'password1!', nameFirst, nameLast);
+    test("password doesn't contain capital letter", async () => {
+      const res = await registerUserRequest('pw@example.com', 'password1!', nameFirst, nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires an uppercase character');
     });
 
-    test("password doesn't contain lowercase letter", () => {
-      const res = registerUserRequest('pw@example.com', 'PASSWORD1!', nameFirst, nameLast);
+    test("password doesn't contain lowercase letter", async () => {
+      const res = await registerUserRequest('pw@example.com', 'PASSWORD1!', nameFirst, nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires a lowercase character');
     });
 
-    test("password doesn't have a number", () => {
-      const res = registerUserRequest('pw@example.com', 'Password!', nameFirst, nameLast);
+    test("password doesn't have a number", async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password!', nameFirst, nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires a number');
     });
 
-    test("password doesn't have a special character", () => {
-      const res = registerUserRequest('pw@example.com', 'Password12', nameFirst, nameLast);
+    test("password doesn't have a special character", async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password12', nameFirst, nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
@@ -129,32 +129,32 @@ describe('POST /v1/user/register route', () => {
   });
 
   describe('name errors', () => {
-    test('first name contains special character', () => {
-      const res = registerUserRequest('pw@example.com', 'Password1!', '!@#$%^&*', nameLast);
+    test('first name contains special character', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', '!@#$%^&*', nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });
 
-    test('last name contains special character', () => {
-      const res = registerUserRequest('pw@example.com', 'Password1!', nameFirst, '!@#$%^&*');
+    test('last name contains special character', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', nameFirst, '!@#$%^&*');
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });
 
-    test('first name contains number', () => {
-      const res = registerUserRequest('pw@example.com', 'Password1!', '12345', nameLast);
+    test('first name contains number', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', '12345', nameLast);
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });
 
-    test('last name contains number', () => {
-      const res = registerUserRequest('pw@example.com', 'Password1!', nameFirst, '12345');
+    test('last name contains number', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', nameFirst, '12345');
       const body = res.body;
       
       expect(res.statusCode).toBe(400);
