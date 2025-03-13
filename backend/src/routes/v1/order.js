@@ -24,7 +24,7 @@ router.post('/create/form', authMiddleware, async (req, res) => {
     // send response
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -35,7 +35,7 @@ router.post('/create/bulk', authMiddleware, async (req, res) => {
     if (!Array.isArray(orders)) {
       return res.status(400).json({ error: 'Invalid orderList given' });
     } else {
-      let orderIds = [];
+      const orderIds = [];
       for (const order of orders) {
         const { error } = orderSchema.validate(order);
         if (error) {
@@ -48,7 +48,7 @@ router.post('/create/bulk', authMiddleware, async (req, res) => {
       return res.status(200).json({ orderIds });
     }
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -116,7 +116,7 @@ router.get('/:orderId', authMiddleware, async (req, res) => {
       return res.status(200).send(xmlResponse);
     }
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error", error });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -132,7 +132,7 @@ router.get('/:orderId/pdf', authMiddleware, (req, res) => {
 
 // PUT /v1/order/{orderId}
 router.put('/:orderId', authMiddleware, async (req, res) => {
-  const  orderId  = parseInt(req.params.orderId);
+  const orderId = parseInt(req.params.orderId);
 
   try {
     // validate request body and order id
@@ -142,7 +142,7 @@ router.put('/:orderId', authMiddleware, async (req, res) => {
     }
     const isValid = await isOrderIdValid(orderId);
     if (!isValid) {
-      return res.status(400).json({ error: `Invalid orderId given` });
+      return res.status(400).json({ error: 'Invalid orderId given' });
     }
 
     // get response from controller
@@ -151,7 +151,7 @@ router.put('/:orderId', authMiddleware, async (req, res) => {
     // send response
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -162,13 +162,13 @@ router.delete('/:orderId', authMiddleware, async (req, res) => {
   try {
     const isValid = await isOrderIdValid(orderId);
     if (!isValid) {
-      return res.status(400).json({ error: `Invalid orderId given` });
+      return res.status(400).json({ error: 'Invalid orderId given' });
     }
 
     const response = await orderDelete(orderId);
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
