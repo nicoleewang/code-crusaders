@@ -394,17 +394,22 @@ const generateXML = (orderData, orderId) => {
   };
 }
 
+/**
+ * checks whether an orderId exists in the database
+ * @param {integer} orderId - id of the order being checked
+ * @returns {boolean} - true if valid, false if not
+ */
 export const isOrderIdValid = async (orderId) => {
   const { count, error } = await supabase
-  .from('order')
-  .select('*', { count: 'exact' })
-  .eq('orderId', orderId);
+    .from('order')
+    .select('*', { count: 'exact', head: true })
+    .eq('orderId', orderId);
 
-  if (count == 0) {
+  if (error) {
     return false;
   }
 
-  return true;
+  return count > 0;
 };
 
 export const orderFormUpdate = async (orderId, orderData) => {
@@ -427,4 +432,23 @@ const deleteOrderFromDatabase = async (orderId) => {
   if (orderError) {
     throw createHttpError(500, `Failed to delete order: ${orderError.message}`);
   }
+};
+
+/**
+ * returns an xml order document from the given orderId
+ * @param {integer} orderId - orderId of the order being retrieved
+ * @returns {string} - xml document as a string
+ */
+export const getOrderFromOrderId = async (orderId) => {
+  const { data: order, error } = await supabase
+  .from('order')
+  .select('*')
+  .eq('orderId', orderId)
+  .single();
+
+  if (error) {
+    throw createHttpError(500, `Failed to fetch order: ${error.message}`);
+  }
+
+  return order.xml;
 };

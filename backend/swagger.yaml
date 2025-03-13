@@ -140,13 +140,10 @@ paths:
         200: 
           description: OK
           content:
-            application/json:
+            application/xml:
               schema:
-                type: object
-                properties:
-                  ublDocument: 
-                    type: string
-                    example: "<Invoice><ID>12345</ID><CustomerName>John Smith</CustomerName></Invoice>"
+                type: string
+                example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Order xmlns=\"urn:oasis:names:specification:ubl:schema:xsd:Order-2\">\n  <OrderID>12345</OrderID>\n  <OrderDate>2025-03-10</OrderDate>\n  <!-- other XML content -->\n</Order>"
         400:
           $ref: "#/components/responses/BadRequestResponse"
         401:
