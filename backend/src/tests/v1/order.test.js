@@ -1,10 +1,12 @@
 import { 
+  getOrderFromOrderIdRequest,
   orderBulkCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
   registerUserRequest
 } from '../wrapper';
 import supabase from '../../config/db.js';
+import { XMLParser } from 'fast-xml-parser'
 
 const validParams = {
   "order": {
@@ -336,4 +338,45 @@ describe('POST /v1/order/create/bulk', () => {
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
   });
+})
+
+describe('GET /v1/order/{orderId}', () => {
+  let orderId;
+
+  beforeAll(async () => {
+    const res = await orderFormCreateRequest(validParams, token)
+    orderId = res.body.orderId;
+  });
+
+  test('should return 200 and xml order document', async () => {
+    const res = await getOrderFromOrderIdRequest(orderId, token)
+    const { statusCode, body, headers } = res;
+
+    expect(statusCode).toBe(200);
+    expect(headers['content-type']).toMatch(/xml/);
+
+    // Validate if body is valid XML
+    const parser = new XMLParser();
+    expect(() => parser.parse(body)).not.toThrow();
+    const parsedXML = parser.parse(body);
+    expect(parsedXML.Order).toBeDefined();
+  })
+
+  test('invalid orderId should return 400 and error message', async () => {
+    const res = await getOrderFromOrderIdRequest('imInvalid', token)
+    const { statusCode, body } = res;
+
+    expect(statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test('invalid token should return 401 and error message', async () => {
+    const res = await getOrderFromOrderIdRequest(orderId, "imInvalid")
+    const { statusCode, body } = res;
+
+    expect(statusCode).toBe(401);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  })
 })
