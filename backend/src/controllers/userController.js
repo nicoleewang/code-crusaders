@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import supabase from '../config/db.js';
-import express from 'express'; 
+import express from 'express';
 import cookieParser from 'cookie-parser';
 import validator from 'validator';
 
@@ -94,21 +94,21 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
 
     // generate JWT token
     const token = jwt.sign(
-      { email: user[0].email,
-        nameFirst: user[0].nameFirst, 
-        nameLast: user[0].nameLast 
+      {
+        email: user[0].email,
+        nameFirst: user[0].nameFirst,
+        nameLast: user[0].nameLast
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' } //optional
+      { expiresIn: '1h' } // optional
     );
 
     return { token };
-    
   } catch (error) {
     if (!error.status) {
       throw createHttpError(500, 'Unexpected server error' + error);
     }
-    throw error; 
+    throw error;
   }
 };
 
@@ -126,49 +126,49 @@ export const loginUser = async (email, password) => {
   }
 
   try {
-     // find user by email
-     const { data: user, error: findError } = await supabase
+    // find user by email
+    const { data: user, error: findError } = await supabase
       .from('user')
       .select('*')
       .eq('email', email)
       .single();
 
-      // error handling
-      if (!user) {
-        throw createHttpError(401, 'User not found');
-      }
+    // error handling
+    if (!user) {
+      throw createHttpError(401, 'User not found');
+    }
 
-      if (findError) {
-        throw createHttpError(500, 'Database error');
-      }
+    if (findError) {
+      throw createHttpError(500, 'Database error');
+    }
 
-      // compare passwords
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        throw createHttpError(401, 'Invalid email or password');
-      }
+    // compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw createHttpError(401, 'Invalid email or password');
+    }
 
-      if (!process.env.JWT_SECRET) {
-        throw createHttpError(500, 'Server configuration error');
-      }
+    if (!process.env.JWT_SECRET) {
+      throw createHttpError(500, 'Server configuration error');
+    }
 
-      // create JWT token
-      const token = jwt.sign(
-        { email: user.email,
-          nameFirst: user.nameFirst, 
-          nameLast: user.nameLast 
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' } //optional
-      );
+    // create JWT token
+    const token = jwt.sign(
+      {
+        email: user.email,
+        nameFirst: user.nameFirst,
+        nameLast: user.nameLast
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' } // optional
+    );
 
     return { token };
-
   } catch (error) {
     if (!error.status) {
       throw createHttpError(500, 'Unexpected server error' + error);
     }
-    throw error; 
+    throw error;
   }
 };
 
@@ -185,24 +185,23 @@ export const logoutUser = async (req, res) => {
     // clear cookie
     res.clearCookie('authToken', { httpOnly: true, secure: true });
   } catch (error) {
-    throw error; 
+    throw createHttpError(500, 'Failed to logout user. Please try again.'); ;
   }
 };
 
 export const getUserDetails = async (email) => {
   const { data: user, error: fetchError } = await supabase
-      .from('user')
-      .select('*')
-      .eq('email', email);
+    .from('user')
+    .select('*')
+    .eq('email', email);
 
-    if (fetchError) {
-      throw createHttpError(500, `Failed to fetch user details: ${fetchError.message}`);
-    }
+  if (fetchError) {
+    throw createHttpError(500, `Failed to fetch user details: ${fetchError.message}`);
+  }
 
-    return {
-      email: user[0].email,
-      nameFirst: user[0].nameFirst, 
-      nameLast: user[0].nameLast
-    }
-
+  return {
+    email: user[0].email,
+    nameFirst: user[0].nameFirst,
+    nameLast: user[0].nameLast
+  };
 };

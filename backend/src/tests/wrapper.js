@@ -1,5 +1,7 @@
 import axios from 'axios';
 import config from '../config/test.json';
+import supabase from '../config/db.js';
+import createHttpError from 'http-errors';
 
 const port = config.port;
 const url = config.url;
@@ -13,12 +15,12 @@ export const requestHelper = async (method, path, payload = {}, token = '') => {
       url: `${SERVER_URL}${path}`,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        Authorization: token ? `Bearer ${token}` : ''
       },
       timeout: TIMEOUT_MS,
       ...(method.toUpperCase() === 'GET' || method.toUpperCase() === 'DELETE'
-        ? { params: payload }  // Use `params` for GET & DELETE requests
-        : { data: payload })   // Use `data` for POST, PUT, etc.
+        ? { params: payload } // Use `params` for GET & DELETE requests
+        : { data: payload }) // Use `data` for POST, PUT, etc.
     });
     return {
       statusCode: response.status,
@@ -31,6 +33,15 @@ export const requestHelper = async (method, path, payload = {}, token = '') => {
       body: error.response?.data || { message: 'Internal Server Error' },
       headers: error.response.headers
     };
+  }
+};
+
+// Clear User From Database
+export const deleteUserFromDB = async (e) => {
+  const { error } = await supabase.from('user').delete().eq('email', e);
+
+  if (error) {
+    throw createHttpError(500, error.message);
   }
 };
 
@@ -59,4 +70,7 @@ export const getUserDetailsRequest = async (token) =>
 
 export const getOrderFromOrderIdRequest = (orderId, token) => {
   return requestHelper('GET', `/v1/order/${orderId}`, {}, token);
-}
+};
+
+export const orderDeleteRequest = async (orderId, token) =>
+  requestHelper('DELETE', `/v1/order/${orderId}`, {}, token);
