@@ -8,7 +8,7 @@ import {
 import supabase from '../../config/db.js';
 import fs from 'fs';
 import path from 'path';
-import FormData from 'form-data';
+import request from 'supertest';
 
 const validParams = {
   "order": {
@@ -343,28 +343,47 @@ describe('POST /v1/order/create/bulk', () => {
 })
 
 describe('POST /v1/order/create/csv', () => {
-  let csvOrderParams = { ...validParams };
-  delete csvOrderParams.orderLines
-
+  let orderData = { ...validParams };
+  delete orderData.orderLines;
+  
   test('should return 200 and orderId', async () => {
-    // Path to the CSV file inside the assets folder
     const filePath = path.join(__dirname, '../assets/products.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, token);
 
-    // Ensure the file exists before proceeding
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`Test file not found: ${filePath}`);
-    }
-
-    // Create form-data for file upload
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(filePath)); // Attach the CSV file
-    formData.append('json', JSON.stringify(csvOrderParams)); // Attach JSON payload
-
-    // Make request using formData
-    const res = await orderCSVCreateRequest(formData, token);
-
-    // Assertions
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('message', 'File and JSON received successfully');
+    expect(res.body).toHaveProperty('orderId');
+    expect(typeof res.body.orderId).toBe('number');
+    expect(Number.isInteger(res.body.orderId)).toBe(true);
   });
+
+  test('invalid headers: should return 400 and error message', async () => {
+    const filePath = path.join(__dirname, '../assets/invalidHeaders.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, token);
+
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  })
+
+  test('invalid entries: should return 400 and error message', async () => {
+    const filePath = path.join(__dirname, '../assets/invalidEntries.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, token);
+
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  })
+
+  test('should return 401 and error message', async () => {
+    const filePath = path.join(__dirname, '../assets/products.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, 'imInvalid');
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('error');
+    expect(typeof res.body.error).toBe('string');
+  })
 })
