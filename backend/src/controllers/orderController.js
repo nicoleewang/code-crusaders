@@ -407,6 +407,13 @@ export const isOrderIdValid = async (orderId) => {
   return true;
 };
 
+/**
+  * Given a valid orderId it updates the order in the database with the specified orderData.
+  *
+  * @param {integer} orderId - the order id belonging to the order to be deleted
+  * @param {object} orderData - contains the order details which have been validated by the orderSchema
+  * @returns {orderId: integer} - returns orderId of updated order
+*/
 export const orderFormUpdate = async (orderId, orderData) => {
   try {
     await deleteOrderFromDatabase(orderId);
@@ -418,6 +425,14 @@ export const orderFormUpdate = async (orderId, orderData) => {
   }
 };
 
+/**
+  * Given a valid orderId it deletes the order from the database. Assumes that the database(Supabase)
+  * uses cascading deletion to delete the records in associated table i.e., registeredOrder, registeredOrderProduct.
+  * Also assumes that the products in an order can exist separate to the order.
+  *
+  * @param {integer} orderId - the order id belonging to the order to be deleted
+  * @returns {object} - returns an empty object
+*/
 const deleteOrderFromDatabase = async (orderId) => {
   const { error: orderError } = await supabase
   .from('order')
@@ -429,6 +444,12 @@ const deleteOrderFromDatabase = async (orderId) => {
   }
 };
 
+/**
+  * Given a valid orderId it deletes the order from the database.
+  *
+  * @param {integer} orderId - the order id belonging to the order to be deleted
+  * @returns {object} - returns an empty object
+*/
 export const orderDelete = async (orderId) => {
   try {
     await deleteOrderFromDatabase(orderId);
