@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --coverage",
     "dev": "node src/server.js",
-    "lint": "eslint .",
+    "lint": "eslint src/",
     "build": "echo 'Build Successful'"
   },
   "author": "",
@@ -42,6 +42,7 @@
     "@eslint/js": "^9.22.0",
     "babel-jest": "^29.7.0",
     "eslint": "^9.22.0",
+    "eslint-plugin-jest": "^28.11.0",
     "eslint-plugin-react": "^7.37.4",
     "globals": "^16.0.0",
     "jest": "^29.7.0"

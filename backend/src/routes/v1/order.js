@@ -1,6 +1,6 @@
-import express, { json } from 'express';
+import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId } from '../../controllers/orderController.js';
+import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId, orderDelete } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 
 const router = express.Router();
@@ -74,7 +74,7 @@ router.get('/sent/list', authMiddleware, (req, res) => {
 
 // DELETE /v1/order/sent/{orderId}
 router.delete('/sent/:orderId', authMiddleware, (req, res) => {
-  const { orderId } = req.params;
+  // const { orderId } = req.params;
 
   // replace the following with actual logic
   res.json({ message: 'Sent order deleted successfully' });
@@ -90,7 +90,7 @@ router.get('/received/list', authMiddleware, (req, res) => {
 
 // DELETE /v1/order/received/{orderId}
 router.delete('/received/:orderId', authMiddleware, (req, res) => {
-  const { orderId } = req.params;
+  // const { orderId } = req.params;
 
   // replace the following with actual logic
   res.json({ message: 'Received order deleted successfully' });
@@ -156,11 +156,20 @@ router.put('/:orderId', authMiddleware, async (req, res) => {
 });
 
 // DELETE /v1/order/{orderId}
-router.delete('/:orderId', authMiddleware, (req, res) => {
+router.delete('/:orderId', authMiddleware, async (req, res) => {
   const { orderId } = req.params;
 
-  // replace the following with actual logic
-  res.json({ message: 'Order deleted successfully' });
+  try {
+    const isValid = await isOrderIdValid(orderId);
+    if (!isValid) {
+      return res.status(400).json({ error: `Invalid orderId given` });
+    }
+
+    const response = await orderDelete(orderId);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 export default router;
