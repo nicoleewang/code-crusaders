@@ -395,7 +395,7 @@ const generateXML = (orderData, orderId) => {
 }
 
 /**
- * 
+ * checks whether an orderId exists in the database
  * @param {integer} orderId - id of the order being checked
  * @returns {boolean} - true if valid, false if not
  */
@@ -435,7 +435,7 @@ const deleteOrderFromDatabase = async (orderId) => {
 };
 
 /**
- * 
+ * returns an xml order document from the given orderId
  * @param {integer} orderId - orderId of the order being retrieved
  * @returns {string} - xml document as a string
  */
