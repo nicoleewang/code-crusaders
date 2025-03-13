@@ -428,3 +428,12 @@ const deleteOrderFromDatabase = async (orderId) => {
     throw createHttpError(500, `Failed to delete order: ${orderError.message}`);
   }
 };
+
+export const orderDelete = async (orderId) => {
+  try {
+    await deleteOrderFromDatabase(orderId);
+    return {};
+  } catch (error) {
+    throw createHttpError(500, 'Failed to update order. Please try again.');
+  }
+};
