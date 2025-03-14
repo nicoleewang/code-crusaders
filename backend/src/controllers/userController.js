@@ -128,6 +128,12 @@ export const logoutUser = async (req, res) => {
   }
 };
 
+/**
+ * Retries user information associated with a given email.
+ *
+ * @param {string} email - The email of the user to get details about.
+ * @returns {{email: string, nameFirst: string, nameLast: string}} - Returns the email, first and last name of the user.
+ */
 export const getUserDetails = async (email) => {
   const { data: user, error: fetchError } = await supabase
     .from('user')
@@ -145,6 +151,13 @@ export const getUserDetails = async (email) => {
   };
 };
 
+/**
+ * Generates and stores a unique reset code with a five minute expiration time, and sends the code via
+ * email to the email/user that requested to reset their password.
+ *
+ * @param {string} email - The email of the user requesting the reset code to reset their password.
+ * @returns {{resetCode: string}} - Returns the reset code that will enable the user to reset their password.
+ */
 export const sendUserResetCode = async (email) => {
   const resetCode = crypto.randomBytes(4).toString('hex');
   const expirationTime = new Date(Date.now() + 5 * 60 * 1000).toISOString();
@@ -191,6 +204,14 @@ export const sendUserResetCode = async (email) => {
   return { resetCode };
 };
 
+/**
+ * Generates the contents of the reset password request email in html, and is customised to the user
+ * requesting this route.
+ *
+ * @param {string} name - The name of the user who will be sent the email, must be registered on supabase.
+ * @param {string} resetCode - An 8 character long string that the user can use to reset their password, with a 5 minute expiration.
+ * @returns {string} - Returns the html content of the email in string form.
+ */
 const htmlEmailContent = (name, resetCode) => {
   return `
   <!DOCTYPE html>
