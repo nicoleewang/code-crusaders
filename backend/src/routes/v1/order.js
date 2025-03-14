@@ -70,7 +70,6 @@ router.post('/create/csv', upload.single('file'), authMiddleware, async (req, re
     const response = await orderFormCreate(jsonData, csvContent);
     res.status(200).json(response);
   } catch (error) {
-    console.error('Error processing CSV upload:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
