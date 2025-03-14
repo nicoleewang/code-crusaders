@@ -1,5 +1,7 @@
 import axios from 'axios';
 import config from '../config/test.json';
+import FormData from 'form-data';
+import fs from 'fs';
 import supabase from '../config/db.js';
 import createHttpError from 'http-errors';
 
@@ -8,30 +10,59 @@ const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 const TIMEOUT_MS = 10000;
 
-export const requestHelper = async (method, path, payload = {}, token = '') => {
+export const requestHelper = async (method, path, payload = {}, token = '', filePath = '') => {
   try {
+    // If filePath is provided, handle it as a file upload
+    if (filePath) {
+      const formData = new FormData();
+      formData.append('file', fs.createReadStream(filePath));
+      formData.append('json', JSON.stringify(payload));
+
+      const headers = {
+        ...formData.getHeaders(),
+        Authorization: token ? `Bearer ${token}` : '',
+      };
+
+      // Send the POST request with the form data (for file upload)
+      const response = await axios({
+        method: 'POST',
+        url: `${SERVER_URL}${path}`,
+        headers,
+        timeout: TIMEOUT_MS,
+        data: formData,
+      });
+
+      return {
+        statusCode: response.status,
+        body: response.data,
+        headers: response.headers,
+      };
+    }
+
+    // Otherwise, handle the standard API requests (GET, POST, PUT, DELETE)
     const response = await axios({
       method,
       url: `${SERVER_URL}${path}`,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : ''
+        Authorization: token ? `Bearer ${token}` : '',
       },
       timeout: TIMEOUT_MS,
       ...(method.toUpperCase() === 'GET' || method.toUpperCase() === 'DELETE'
         ? { params: payload } // Use `params` for GET & DELETE requests
         : { data: payload }) // Use `data` for POST, PUT, etc.
     });
+
     return {
       statusCode: response.status,
       body: response.data,
-      headers: response.headers
+      headers: response.headers,
     };
   } catch (error) {
     return {
       statusCode: error.response?.status || 500,
       body: error.response?.data || { message: 'Internal Server Error' },
-      headers: error.response.headers
+      headers: error.response?.headers || {},
     };
   }
 };
@@ -67,6 +98,9 @@ export const orderBulkCreateRequest = async (jsonOrderList, token) =>
 
 export const getUserDetailsRequest = async (token) =>
   requestHelper('GET', '/v1/user/details', {}, token);
+
+export const orderCSVCreateRequest = async (filePath, orderData, token) =>
+  requestHelper('POST', '/v1/order/create/csv', orderData, token, filePath);
 
 export const getOrderFromOrderIdRequest = (orderId, token) => {
   return requestHelper('GET', `/v1/order/${orderId}`, {}, token);
