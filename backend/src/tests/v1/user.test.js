@@ -4,7 +4,8 @@ import {
   registerUserRequest,
   loginUserRequest,
   logoutUserRequest,
-  getUserDetailsRequest
+  getUserDetailsRequest,
+  sendUserResetCodeRequest
 } from '../wrapper';
 
 // constants
@@ -306,6 +307,39 @@ describe('GET /v1/user/details', () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty('error', 'Invalid token');
+    expect(typeof res.body.error).toBe('string');
+  });
+});
+
+describe('POST /v1/user/forgot', () => {
+  const email = 'code_crusaders@outlook.com';
+
+  beforeEach(async () => {
+    await deleteUserFromDB(email); // Ensures the user is removed before registering
+    await registerUserRequest(email, password, nameFirst, nameLast);
+  });
+
+  afterEach(async () => {
+    await deleteUserFromDB(email);
+  });
+
+  // The sending of the reset code via email has been manually checked. Furthermore, if the email
+  // failed to be sent, it would return a 500 HTTP Status code.
+  test('Successfully sends reset code to user\'s email and returns 200', async () => {
+    const res = await sendUserResetCodeRequest(email);
+    const body = res.body;
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('resetCode');
+    expect(body.resetCode).toHaveLength(8);
+    expect(typeof body.resetCode).toBe('string');
+  }, 10000);
+
+  test('Invalid email, return 401', async () => {
+    const res = await sendUserResetCodeRequest('InvalidEmailGive@example.com');
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('error');
     expect(typeof res.body.error).toBe('string');
   });
 });

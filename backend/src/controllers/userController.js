@@ -5,6 +5,8 @@ import supabase from '../config/db.js';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import validator from 'validator';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 // cookies omnom
 const app = express();
@@ -189,6 +191,12 @@ export const logoutUser = async (req, res) => {
   }
 };
 
+/**
+ * Retries user information associated with a given email.
+ *
+ * @param {string} email - The email of the user to get details about.
+ * @returns {{email: string, nameFirst: string, nameLast: string}} - Returns the email, first and last name of the user.
+ */
 export const getUserDetails = async (email) => {
   const { data: user, error: fetchError } = await supabase
     .from('user')
@@ -204,4 +212,174 @@ export const getUserDetails = async (email) => {
     nameFirst: user[0].nameFirst,
     nameLast: user[0].nameLast
   };
+};
+
+/**
+ * Generates and stores a unique reset code with a five minute expiration time, and sends the code via
+ * email to the email/user that requested to reset their password.
+ *
+ * @param {string} email - The email of the user requesting the reset code to reset their password.
+ * @returns {{resetCode: string}} - Returns the reset code that will enable the user to reset their password.
+ */
+export const sendUserResetCode = async (email) => {
+  const resetCode = crypto.randomBytes(4).toString('hex');
+  const expirationTime = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+  const { data: user, error: invalidUser } = await supabase
+    .from('user')
+    .select('*')
+    .eq('email', email)
+    .single();
+
+  if (invalidUser) {
+    throw createHttpError(401, email, ' does not belong to a registered user');
+  }
+
+  const { error: codeError } = await supabase
+    .from('user')
+    .update({ resetCode, codeExpirationTime: expirationTime })
+    .eq('email', email);
+
+  if (codeError) {
+    throw createHttpError(500, `Failed to upsert reset code: ${codeError.message}`);
+  }
+
+  const transporter = await nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: 'codecrusaders100@gmail.com',
+      pass: 'thnp fdsb jklz focg'
+    }
+  });
+
+  const { error: emailError } = await transporter.sendMail({
+    from: '"Code Crusaders" <codecrusaders100@gmail.com>',
+    to: email,
+    subject: 'Reset Password',
+    html: await htmlEmailContent(user.nameFirst + ' ' + user.nameLast, resetCode),
+  });
+  if (emailError) {
+    throw createHttpError(500, `Failed to send email with reset code: ${emailError}`);
+  }
+
+  return { resetCode };
+};
+
+/**
+ * Generates the contents of the reset password request email in html, and is customised to the user
+ * requesting this route.
+ *
+ * @param {string} name - The name of the user who will be sent the email, must be registered on supabase.
+ * @param {string} resetCode - An 8 character long string that the user can use to reset their password, with a 5 minute expiration.
+ * @returns {string} - Returns the html content of the email in string form.
+ */
+const htmlEmailContent = (name, resetCode) => {
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset Request</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #9370db;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px #9370db;
+      }
+
+      h2 {
+        color: #333;
+        font-size: 24px;
+        text-align: center;
+      }
+
+      .content {
+        margin-top: 20px;
+        font-size: 16px;
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .reset-code {
+        display: block;
+        margin: 20px 0;
+        padding: 12px;
+        font-size: 18px;
+        background-color: #f7f7f7;
+        color: #333;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+
+      .cta-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        color: #fff;
+        background-color: #007bff;
+        text-decoration: none;
+        border-radius: 4px;
+        text-align: center;
+        width: 100%;
+      }
+
+      .cta-button:hover {
+        background-color: #0056b3;
+      }
+
+      .footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: #777;
+        text-align: center;
+      }
+
+      .footer a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Password Reset Request</h2>
+      
+      <div class="content">
+        <p>Dear ${name},</p>
+        <p>We received a request to reset your password. Please use the following code to reset your password:</p>
+        
+        <div class="reset-code">
+          ${resetCode}
+        </div>
+        
+        <p>This code will expire in 5 minutes, so please use it as soon as possible.</p>
+        <p>If you didn’t request a password reset, you can safely ignore this email.</p>
+        
+        <a href="[Reset Password Link]" class="cta-button">Reset Your Password</a>
+      </div>
+      
+      <div class="footer">
+        <p>If you have any questions or need further assistance, feel free to <a href="mailto:codecrusaders100@gmail.com">contact our support team</a>.</p>
+        <p>Kind Regards,<br>Code Crusaders</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
 };
