@@ -185,7 +185,7 @@ const validParams = {
   ]
 };
 
-const password = 'password123';
+const password = 'Password12!';
 const nameFirst = 'John';
 const nameLast = 'Doe';
 const email = 'testUser@example.com';
