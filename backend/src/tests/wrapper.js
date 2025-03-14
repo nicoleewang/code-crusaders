@@ -111,3 +111,6 @@ export const getOrderFromOrderIdRequest = (orderId, token) => {
 
 export const orderDeleteRequest = async (orderId, token) =>
   requestHelper('DELETE', `/v1/order/${orderId}`, {}, token);
+
+export const sendUserResetCodeRequest = async (email) =>
+  requestHelper('POST', '/v1/user/forgot', { email });

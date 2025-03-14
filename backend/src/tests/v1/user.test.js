@@ -4,11 +4,12 @@ import {
   registerUserRequest,
   loginUserRequest,
   logoutUserRequest,
-  getUserDetailsRequest
+  getUserDetailsRequest,
+  sendUserResetCodeRequest
 } from '../wrapper';
 
 // constants
-const password = 'password123';
+const password = 'Password123!';
 const nameFirst = 'John';
 const nameLast = 'Doe';
 
@@ -75,6 +76,90 @@ describe('POST /v1/user/register route', () => {
 
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'All fields are required');
+    });
+  });
+
+  test('invalid email error', async () => {
+    const res = await registerUserRequest('example', password, nameFirst, nameLast);
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error', 'Invalid email');
+  });
+
+  describe('password errors', () => {
+    test('password too short', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Pw1!', nameFirst, nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Password is too short');
+    });
+
+    test("password doesn't contain capital letter", async () => {
+      const res = await registerUserRequest('pw@example.com', 'password1!', nameFirst, nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Password requires an uppercase character');
+    });
+
+    test("password doesn't contain lowercase letter", async () => {
+      const res = await registerUserRequest('pw@example.com', 'PASSWORD1!', nameFirst, nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Password requires a lowercase character');
+    });
+
+    test("password doesn't have a number", async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password!', nameFirst, nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Password requires a number');
+    });
+
+    test("password doesn't have a special character", async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password12', nameFirst, nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Password requires a special character');
+    });
+  });
+
+  describe('name errors', () => {
+    test('first name contains special character', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', '!@#$%^&*', nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Invalid character in name');
+    });
+
+    test('last name contains special character', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', nameFirst, '!@#$%^&*');
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Invalid character in name');
+    });
+
+    test('first name contains number', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', '12345', nameLast);
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Invalid character in name');
+    });
+
+    test('last name contains number', async () => {
+      const res = await registerUserRequest('pw@example.com', 'Password1!', nameFirst, '12345');
+      const body = res.body;
+
+      expect(res.statusCode).toBe(400);
+      expect(body).toHaveProperty('error', 'Invalid character in name');
     });
   });
 
@@ -222,6 +307,39 @@ describe('GET /v1/user/details', () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty('error', 'Invalid token');
+    expect(typeof res.body.error).toBe('string');
+  });
+});
+
+describe('POST /v1/user/forgot', () => {
+  const email = 'code_crusaders@outlook.com';
+
+  beforeEach(async () => {
+    await deleteUserFromDB(email); // Ensures the user is removed before registering
+    await registerUserRequest(email, password, nameFirst, nameLast);
+  });
+
+  afterEach(async () => {
+    await deleteUserFromDB(email);
+  });
+
+  // The sending of the reset code via email has been manually checked. Furthermore, if the email
+  // failed to be sent, it would return a 500 HTTP Status code.
+  test('Successfully sends reset code to user\'s email and returns 200', async () => {
+    const res = await sendUserResetCodeRequest(email);
+    const body = res.body;
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('resetCode');
+    expect(body.resetCode).toHaveLength(8);
+    expect(typeof body.resetCode).toBe('string');
+  }, 10000);
+
+  test('Invalid email, return 401', async () => {
+    const res = await sendUserResetCodeRequest('InvalidEmailGive@example.com');
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('error');
     expect(typeof res.body.error).toBe('string');
   });
 });
