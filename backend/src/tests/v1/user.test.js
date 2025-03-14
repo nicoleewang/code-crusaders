@@ -335,10 +335,10 @@ describe('POST /v1/user/forgot', () => {
     expect(typeof body.resetCode).toBe('string');
   }, 10000);
 
-  test('Invalid email, return 401', async () => {
+  test('Invalid email, return 404', async () => {
     const res = await sendUserResetCodeRequest('InvalidEmailGive@example.com');
 
-    expect(res.statusCode).toBe(401);
+    expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('error');
     expect(typeof res.body.error).toBe('string');
   });
