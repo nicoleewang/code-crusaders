@@ -5,7 +5,8 @@ import {
   loginUserRequest,
   logoutUserRequest,
   getUserDetailsRequest,
-  sendUserResetCodeRequest
+  sendUserResetCodeRequest,
+  resetPasswordRequest
 } from '../wrapper';
 
 // constants
@@ -335,11 +336,104 @@ describe('POST /v1/user/forgot', () => {
     expect(typeof body.resetCode).toBe('string');
   }, 10000);
 
-  test('Invalid email, return 404', async () => {
+  test('Invalid email used, return 404', async () => {
     const res = await sendUserResetCodeRequest('InvalidEmailGive@example.com');
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('error');
     expect(typeof res.body.error).toBe('string');
+  });
+});
+
+describe('POST /v1/user/reset', () => {
+  const email = 'code_crusaders@outlook.com';
+
+  beforeEach(async () => {
+    await deleteUserFromDB(email); // Ensures the user is removed before registering
+    await registerUserRequest(email, password, nameFirst, nameLast);
+  });
+
+  afterEach(async () => {
+    await deleteUserFromDB(email);
+  });
+
+  // The sending of the reset code via email has been manually checked. Furthermore, if the email
+  // failed to be sent, it would return a 500 HTTP Status code.
+  test('Successfully updates password and returns 200', async () => {
+    const resForgot = await sendUserResetCodeRequest(email);
+    const { data: oldUserData } = await supabase
+      .from('user')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    const resReset = await resetPasswordRequest(email, resForgot.body.resetCode, 'newPassword123!');
+    const { data: newUserData } = await supabase
+      .from('user')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    expect(resReset.statusCode).toBe(200);
+    expect(resReset.body).toStrictEqual({});
+    expect(newUserData.email).toStrictEqual(oldUserData.email);
+    expect(newUserData.nameFirst).toStrictEqual(oldUserData.nameFirst);
+    expect(newUserData.nameLast).toStrictEqual(oldUserData.nameLast);
+    expect(newUserData.password).not.toStrictEqual(oldUserData.password);
+  });
+
+  test('Invalid email used , return 404', async () => {
+    const resForgot = await sendUserResetCodeRequest(email);
+    const resReset = await resetPasswordRequest('invalidEmail', resForgot.body.resetCode, 'newPassword123!');
+
+    expect(resReset.statusCode).toBe(404);
+    expect(resReset.body).toHaveProperty('error');
+    expect(typeof resReset.body.error).toBe('string');
+  });
+
+  test('Invalid reset code used, return 400', async () => {
+    await sendUserResetCodeRequest(email);
+    const resReset = await resetPasswordRequest(email, '--------', 'newPassword123!');
+
+    expect(resReset.statusCode).toBe(400);
+    expect(resReset.body).toHaveProperty('error');
+    expect(typeof resReset.body.error).toBe('string');
+  });
+
+  test('Reset code has expired, return 400', async () => {
+    const resForgot = await sendUserResetCodeRequest(email);
+
+    const expiredDate = await new Date().toISOString();
+    await supabase
+      .from('user')
+      .update({ codeExpirationTime: expiredDate })
+      .eq('email', email);
+
+    const resReset = await resetPasswordRequest(email, resForgot.body.resetCode, 'newPassword123!');
+
+    expect(resReset.statusCode).toBe(400);
+    expect(resReset.body).toHaveProperty('error');
+    expect(typeof resReset.body.error).toBe('string');
+  });
+
+  test('Reset code must belong to the latest reset password request, return 400', async () => {
+    const resForgot = await sendUserResetCodeRequest(email);
+    await sendUserResetCodeRequest(email);
+
+    const resReset = await resetPasswordRequest(email, resForgot.body.resetCode, 'newPassword123!');
+
+    expect(resReset.statusCode).toBe(400);
+    expect(resReset.body).toHaveProperty('error');
+    expect(typeof resReset.body.error).toBe('string');
+  }, 10000);
+
+  test('Invalid password given, return 400', async () => {
+    const resForgot = await sendUserResetCodeRequest(email);
+
+    const resReset = await resetPasswordRequest(email, resForgot.body.resetCode, 'newP1!');
+
+    expect(resReset.statusCode).toBe(400);
+    expect(resReset.body).toHaveProperty('error');
+    expect(typeof resReset.body.error).toBe('string');
   });
 });

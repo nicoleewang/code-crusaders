@@ -111,3 +111,6 @@ export const orderDeleteRequest = async (orderId, token) =>
 
 export const sendUserResetCodeRequest = async (email) =>
   requestHelper('POST', '/v1/user/forgot', { email });
+
+export const resetPasswordRequest = async (email, resetCode, newPassword) =>
+  requestHelper('POST', '/v1/user/reset', { email, resetCode, newPassword });
