@@ -12,7 +12,7 @@ app.use(cookieParser());
 
 /**
  * Registers a new user in the database after validating the input fields and password strength.
- * 
+ *
  * @param {string} email - The email address of the user to be registered.
  * @param {string} password - The password for the user. Must meet the specified strength requirements.
  * @param {string} nameFirst - The first name of the user. Should not include special characters or numbers.
@@ -38,13 +38,13 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
   // upper case char
   if (!(/[A-Z]/.test(password))) {
     throw createHttpError(400, 'Password requires an uppercase character');
-  } 
-  
+  }
+
   // lower case char
   if (!(/[a-z]/.test(password))) {
     throw createHttpError(400, 'Password requires a lowercase character');
-  } 
-  
+  }
+
   // number
   if (!(/[0-9]/.test(password))) {
     throw createHttpError(400, 'Password requires a number');
@@ -56,11 +56,11 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
   }
 
   // invalid character in name
-  if ((/[!@#$%^&*(),.?":{}|<>]/.test(nameFirst)) || 
-      (/[!@#$%^&*(),.?":{}|<>]/.test(nameLast)) || 
-      (/[0-9]/.test(nameFirst)) || 
+  if ((/[!@#$%^&*(),.?":{}|<>]/.test(nameFirst)) ||
+      (/[!@#$%^&*(),.?":{}|<>]/.test(nameLast)) ||
+      (/[0-9]/.test(nameFirst)) ||
       (/[0-9]/.test(nameLast))) {
-        throw createHttpError(400, 'Invalid character in name');
+    throw createHttpError(400, 'Invalid character in name');
   }
 
   try {
@@ -114,7 +114,7 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
 
 /**
  * Authenticates a user by validating the input fields and checking the provided credentials.
- * 
+ *
  * @param {string} email - The email address of the user attempting to log in.
  * @param {string} password - The password for the user attempting to log in.
  * @returns {Object} An object containing a JWT token for the user.
@@ -174,7 +174,7 @@ export const loginUser = async (email, password) => {
 
 /**
  * Logs out a user by clearing the authentication cookie.
- * 
+ *
  * @param {Object} req - The request object (not used in this function, but typically available in Express route handlers).
  * @param {Object} res - The response object, used to clear the authentication cookie.
  * @returns {void} Does not return a value.

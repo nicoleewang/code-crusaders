@@ -2,12 +2,14 @@ import {
   deleteUserFromDB,
   getOrderFromOrderIdRequest,
   orderBulkCreateRequest,
+  orderCSVCreateRequest,
   orderFormCreateRequest,
   orderFormUpdateRequest,
   registerUserRequest,
   orderDeleteRequest,
 } from '../wrapper';
 import supabase from '../../config/db.js';
+import path from 'path';
 import { XMLParser } from 'fast-xml-parser';
 
 const validParams = {
@@ -354,6 +356,52 @@ describe('POST /v1/order/create/bulk', () => {
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
+  });
+});
+
+describe('POST /v1/order/create/csv', () => {
+  const orderData = { ...validParams };
+  delete orderData.orderLines;
+
+  test('should return 200 and orderId', async () => {
+    const filePath = path.join(__dirname, '../assets/products.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, token);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('orderId');
+    expect(typeof res.body.orderId).toBe('number');
+    expect(Number.isInteger(res.body.orderId)).toBe(true);
+  });
+
+  test('invalid headers: should return 400 and error message', async () => {
+    const filePath = path.join(__dirname, '../assets/invalidHeaders.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, token);
+
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test('invalid entries: should return 400 and error message', async () => {
+    const filePath = path.join(__dirname, '../assets/invalidEntries.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, token);
+
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+
+  test('should return 401 and error message', async () => {
+    const filePath = path.join(__dirname, '../assets/products.csv');
+    const res = await orderCSVCreateRequest(filePath, orderData, 'imInvalid');
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('error');
+    expect(typeof res.body.error).toBe('string');
   });
 });
 

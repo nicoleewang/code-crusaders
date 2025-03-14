@@ -2,13 +2,17 @@ import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId, orderDelete } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
+import multer from 'multer';
+import { validateCSV } from './helpers.js';
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // !!! this file is just for parsing the request and sending a response (see the first route for an example). the actual logic should be implemented in controllers. !!! //
 
 // *************** CREATE ORDERS *************** //
 
+// POST /v1/order/create/form
 router.post('/create/form', authMiddleware, async (req, res) => {
   try {
     // validate request body
@@ -52,10 +56,22 @@ router.post('/create/bulk', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /v1/order/create/pdf
-router.post('/create/pdf', authMiddleware, (req, res) => {
-  // replace the following with actual logic
-  res.json({ message: 'Order PDF uploaded successfully' });
+// POST /v1/order/create/csv
+router.post('/create/csv', upload.single('file'), authMiddleware, async (req, res) => {
+  try {
+    const jsonData = JSON.parse(req.body.json);
+    const csvContent = req.file.buffer.toString('utf-8');
+
+    const validation = validateCSV(csvContent);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    const response = await orderFormCreate(jsonData, csvContent);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // **************** SEND ORDERS **************** //

@@ -90,7 +90,7 @@ describe('POST /v1/user/register route', () => {
     test('password too short', async () => {
       const res = await registerUserRequest('pw@example.com', 'Pw1!', nameFirst, nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password is too short');
     });
@@ -98,7 +98,7 @@ describe('POST /v1/user/register route', () => {
     test("password doesn't contain capital letter", async () => {
       const res = await registerUserRequest('pw@example.com', 'password1!', nameFirst, nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires an uppercase character');
     });
@@ -106,7 +106,7 @@ describe('POST /v1/user/register route', () => {
     test("password doesn't contain lowercase letter", async () => {
       const res = await registerUserRequest('pw@example.com', 'PASSWORD1!', nameFirst, nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires a lowercase character');
     });
@@ -114,7 +114,7 @@ describe('POST /v1/user/register route', () => {
     test("password doesn't have a number", async () => {
       const res = await registerUserRequest('pw@example.com', 'Password!', nameFirst, nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires a number');
     });
@@ -122,7 +122,7 @@ describe('POST /v1/user/register route', () => {
     test("password doesn't have a special character", async () => {
       const res = await registerUserRequest('pw@example.com', 'Password12', nameFirst, nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Password requires a special character');
     });
@@ -132,7 +132,7 @@ describe('POST /v1/user/register route', () => {
     test('first name contains special character', async () => {
       const res = await registerUserRequest('pw@example.com', 'Password1!', '!@#$%^&*', nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });
@@ -140,7 +140,7 @@ describe('POST /v1/user/register route', () => {
     test('last name contains special character', async () => {
       const res = await registerUserRequest('pw@example.com', 'Password1!', nameFirst, '!@#$%^&*');
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });
@@ -148,7 +148,7 @@ describe('POST /v1/user/register route', () => {
     test('first name contains number', async () => {
       const res = await registerUserRequest('pw@example.com', 'Password1!', '12345', nameLast);
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });
@@ -156,7 +156,7 @@ describe('POST /v1/user/register route', () => {
     test('last name contains number', async () => {
       const res = await registerUserRequest('pw@example.com', 'Password1!', nameFirst, '12345');
       const body = res.body;
-      
+
       expect(res.statusCode).toBe(400);
       expect(body).toHaveProperty('error', 'Invalid character in name');
     });

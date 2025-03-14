@@ -2,19 +2,36 @@ import createHttpError from 'http-errors';
 import supabase from '../config/db.js';
 import { create } from 'xmlbuilder2';
 
-export const orderFormCreate = async (orderData) => {
+/**
+ *
+ * @param {object} orderData - order document data
+ * @param {string} csv - csv product info
+ * @returns {orderId} orderId of the order document generated
+ */
+export const orderFormCreate = async (orderData, csv) => {
   try {
     // Generate a unique order ID
     const orderId = Math.floor(Math.random() * 1000000);
+
+    if (csv) {
+      const parsedOrderData = parseCSVToOrderData(csv);
+      orderData.orderLines = [...parsedOrderData.orderLines];
+    }
 
     await insertOrderIntoDatabase(orderId, orderData);
 
     return { orderId: orderId };
   } catch (error) {
-    throw createHttpError(500, 'Failed to create order. Please try again.');
+    throw createHttpError(500, 'Failed to create order. Please try again.' + error);
   }
 };
 
+/**
+ * inserts a new order into the database.
+ * also inserts the products within the order into the database
+ * @param {integer} orderId - orderId of the new order document
+ * @param {object} orderData - order document data as a JSON object
+ */
 const insertOrderIntoDatabase = async (orderId, orderData) => {
   const { xml, totalCost } = generateXML(orderData, orderId);
 
@@ -36,6 +53,78 @@ const insertOrderIntoDatabase = async (orderId, orderData) => {
     throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
   }
 
+  await insertProductIntoDB(orderData, orderId);
+};
+
+/**
+ * parses csv order lines data into a json object
+ * @param {string} csv - csv order lines info
+ * @returns {object} an object containing an array of `orderLines`, where each order line contains product info
+ */
+const parseCSVToOrderData = (csv) => {
+  const rows = csv.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+  const headers = rows[0];
+
+  const orderData = {
+    orderLines: []
+  };
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.length < headers.length) continue;
+
+    const line = {
+      note: row[0],
+      lineItem: {
+        quantity: parseInt(row[1], 10),
+        totalTaxAmount: parseFloat(row[2]),
+        price: parseFloat(row[3]),
+        baseQuantity: {
+          quantity: parseInt(row[4], 10),
+          unitCode: row[5],
+        },
+        item: {
+          itemId: row[6],
+          description: row[7],
+          name: row[8],
+          properties: parseProperties(row[9]),
+        },
+      },
+    };
+
+    orderData.orderLines.push(line);
+  }
+
+  return orderData;
+};
+
+/**
+ * parses a string containing key-value pairs in the form of "key: value" into an object.
+ *
+ * @param {string} propertiesStr - a string containing key-value pairs, separated by semicolons, where each pair is in the form of "key: value".
+ * @returns {object} an object where the keys are the property names and the values are the corresponding property values from the input string.
+ */
+const parseProperties = (propertiesStr) => {
+  const properties = {};
+  if (!propertiesStr) return properties;
+
+  const items = propertiesStr.split(';').map(item => item.trim());
+  items.forEach(item => {
+    const [key, value] = item.split(':').map(part => part.trim());
+    if (key && value) {
+      properties[key] = value;
+    }
+  });
+
+  return properties;
+};
+
+/**
+ * inserts products from an order document into the database
+ * @param {object} orderData - order document data as a JSON object
+ * @param {integer} orderId - orderId of the order associated with the products
+ */
+const insertProductIntoDB = async (orderData, orderId) => {
   const productInsertPromises = orderData.orderLines.map(async (line) => {
     const productId = line.lineItem.item.itemId;
 
@@ -67,7 +156,6 @@ const insertOrderIntoDatabase = async (orderId, orderData) => {
       throw createHttpError(500, `Failed to insert order-product relationship: ${orderProductError.message}`);
     }
   });
-
   await Promise.all(productInsertPromises);
 };
 
