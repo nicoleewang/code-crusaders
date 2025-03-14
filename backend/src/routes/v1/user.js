@@ -5,7 +5,8 @@ import {
   loginUser,
   logoutUser,
   getUserDetails,
-  sendUserResetCode
+  sendUserResetCode,
+  resetPassword
 } from '../../controllers/userController.js';
 import cookieParser from 'cookie-parser';
 
@@ -89,7 +90,9 @@ router.post('/forgot', async (req, res) => {
 });
 
 // POST /v1/user/reset
-router.post('/reset', (req, res) => {
+router.post('/reset', async (req, res) => {
+  const { email, resetCode, newPassword } = req.body;
+
   try {
     const response = await resetPassword(email, resetCode, newPassword);
     res.status(200).json(response);

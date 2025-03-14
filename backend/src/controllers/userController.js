@@ -32,31 +32,6 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
     throw createHttpError(400, 'Invalid email');
   }
 
-  // length
-  if (password.length < 8) {
-    throw createHttpError(400, 'Password is too short');
-  }
-
-  // upper case char
-  if (!(/[A-Z]/.test(password))) {
-    throw createHttpError(400, 'Password requires an uppercase character');
-  }
-
-  // lower case char
-  if (!(/[a-z]/.test(password))) {
-    throw createHttpError(400, 'Password requires a lowercase character');
-  }
-
-  // number
-  if (!(/[0-9]/.test(password))) {
-    throw createHttpError(400, 'Password requires a number');
-  }
-
-  // special char
-  if (!(/[!@#$%^&*(),.?":{}|<>]/.test(password))) {
-    throw createHttpError(400, 'Password requires a special character');
-  }
-
   // invalid character in name
   if ((/[!@#$%^&*(),.?":{}|<>]/.test(nameFirst)) ||
       (/[!@#$%^&*(),.?":{}|<>]/.test(nameLast)) ||
@@ -66,6 +41,9 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
   }
 
   try {
+    // hash pw
+    const hashedPW = await isPasswordValid(password);
+
     // check if user exists
     const { data: existingUser, error: findError } = await supabase
       .from('user')
@@ -80,9 +58,6 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
     if (existingUser) {
       throw createHttpError(400, 'User already exists');
     }
-
-    // hash pw
-    const hashedPW = await bcrypt.hash(password, 10);
 
     // insert new user into supabase
     const { data: user, error: insertError } = await supabase
@@ -112,6 +87,41 @@ export const registerUser = async (email, password, nameFirst, nameLast) => {
     }
     throw error;
   }
+};
+
+/**
+ * Checks if the given password is valid and strong, and returns the password in hashed form.
+ *
+ * @param {string} password - An unhashed password to check for validity and strength.
+ * @returns {string} - Returns the bcrypt hashed form of 'password'.
+ */
+const isPasswordValid = async(password) => {
+  // length
+  if (password.length < 8) {
+    throw createHttpError(400, 'Password is too short');
+  }
+
+  // upper case char
+  if (!(/[A-Z]/.test(password))) {
+    throw createHttpError(400, 'Password requires an uppercase character');
+  }
+
+  // lower case char
+  if (!(/[a-z]/.test(password))) {
+    throw createHttpError(400, 'Password requires a lowercase character');
+  }
+
+  // number
+  if (!(/[0-9]/.test(password))) {
+    throw createHttpError(400, 'Password requires a number');
+  }
+
+  // special char
+  if (!(/[!@#$%^&*(),.?":{}|<>]/.test(password))) {
+    throw createHttpError(400, 'Password requires a special character');
+  }
+
+  return await bcrypt.hash(password, 10);
 };
 
 /**
@@ -232,7 +242,7 @@ export const sendUserResetCode = async (email) => {
     .single();
 
   if (invalidUser) {
-    throw createHttpError(401, email, ' does not belong to a registered user');
+    throw createHttpError(404, email, ' does not belong to a registered user');
   }
 
   const { error: codeError } = await supabase
@@ -241,7 +251,7 @@ export const sendUserResetCode = async (email) => {
     .eq('email', email);
 
   if (codeError) {
-    throw createHttpError(500, `Failed to upsert reset code: ${codeError.message}`);
+    throw createHttpError(500, `Failed to update reset code: ${codeError.message}`);
   }
 
   const transporter = await nodemailer.createTransport({
@@ -382,4 +392,40 @@ const htmlEmailContent = (name, resetCode) => {
   </body>
   </html>
   `;
+};
+
+/**
+ * If the reset code given is valid, reset the password of the given email to the newPassword.
+ *
+ * @param {string} email - The email of the user requesting the reset reset their password.
+ * @param {string} resetCode - The reset code received via email that if valid enables the user to reset password.
+ * @param {string} newPassword - The new password to set the user's account to, must be valid for it to be changed though.
+ * @returns {object} - Returns an empty object.
+ */
+export const resetPassword = async (email, resetCode, newPassword) => {
+  const { data: user, error: invalidUser } = await supabase
+    .from('user')
+    .select('*')
+    .eq('email', email)
+    .single();
+
+  if (invalidUser) {
+    throw createHttpError(404, email, ' does not belong to a registered user');
+  }
+
+  if (new Date(user.codeExpirationTime) < new Date() || user.resetCode !== resetCode) {
+    throw createHttpError(400, 'Invalid reset code was given. Please try again.');
+  }
+  const hashedPassword = await isPasswordValid(newPassword);
+
+  const { error: updateError } = await supabase
+    .from('user')
+    .update({ password: hashedPassword, resetCode: null, codeExpirationTime: null })
+    .eq('email', email);
+
+  if (updateError) {
+    throw createHttpError(500, `Failed to update password: ${updateError.message}`);
+  }
+
+  return {};
 };
