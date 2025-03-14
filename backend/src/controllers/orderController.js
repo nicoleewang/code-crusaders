@@ -3,7 +3,7 @@ import supabase from '../config/db.js';
 import { create } from 'xmlbuilder2';
 
 /**
- * 
+ *
  * @param {object} orderData - order document data
  * @param {string} csv - csv product info
  * @returns {orderId} orderId of the order document generated
@@ -18,7 +18,7 @@ export const orderFormCreate = async (orderData, csv) => {
       orderData.orderLines = [...parsedOrderData.orderLines];
     }
 
-    await insertOrderIntoDatabase(orderId, orderData); 
+    await insertOrderIntoDatabase(orderId, orderData);
 
     return { orderId: orderId };
   } catch (error) {
@@ -27,7 +27,7 @@ export const orderFormCreate = async (orderData, csv) => {
 };
 
 /**
- * inserts a new order into the database. 
+ * inserts a new order into the database.
  * also inserts the products within the order into the database
  * @param {integer} orderId - orderId of the new order document
  * @param {object} orderData - order document data as a JSON object
@@ -52,7 +52,7 @@ const insertOrderIntoDatabase = async (orderId, orderData) => {
   if (registeredOrderError) {
     throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
   }
-  
+
   await insertProductIntoDB(orderData, orderId);
 };
 
@@ -100,7 +100,7 @@ const parseCSVToOrderData = (csv) => {
 
 /**
  * parses a string containing key-value pairs in the form of "key: value" into an object.
- * 
+ *
  * @param {string} propertiesStr - a string containing key-value pairs, separated by semicolons, where each pair is in the form of "key: value".
  * @returns {object} an object where the keys are the property names and the values are the corresponding property values from the input string.
  */
@@ -157,7 +157,7 @@ const insertProductIntoDB = async (orderData, orderId) => {
     }
   });
   await Promise.all(productInsertPromises);
-}
+};
 
 const generateXML = (orderData, orderId) => {
   const now = new Date();

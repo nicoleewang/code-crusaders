@@ -1,7 +1,7 @@
 const REQUIRED_HEADERS = [
-  "Note", "Quantity", "Total Tax Amount", "Price", 
-  "Base Quantity", "Unit Code", "Item ID", 
-  "Description", "Name", "Properties"
+  'Note', 'Quantity', 'Total Tax Amount', 'Price',
+  'Base Quantity', 'Unit Code', 'Item ID',
+  'Description', 'Name', 'Properties'
 ];
 
 /**
@@ -25,11 +25,10 @@ export const validateCSV = (csvContent) => {
     if (columns.length !== REQUIRED_HEADERS.length) {
       return { valid: false, error: `Row ${i} has incorrect number of columns.` };
     }
-    if (columns.some(col => col === "")) {
+    if (columns.some(col => col === '')) {
       return { valid: false, error: `Row ${i} has empty columns.` };
     }
   }
 
   return { valid: true };
 };
-

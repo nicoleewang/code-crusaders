@@ -10,7 +10,7 @@ import {
 } from '../wrapper';
 import supabase from '../../config/db.js';
 import path from 'path';
-import { XMLParser } from 'fast-xml-parser'
+import { XMLParser } from 'fast-xml-parser';
 
 const validParams = {
   order: {
@@ -360,9 +360,9 @@ describe('POST /v1/order/create/bulk', () => {
 });
 
 describe('POST /v1/order/create/csv', () => {
-  let orderData = { ...validParams };
+  const orderData = { ...validParams };
   delete orderData.orderLines;
-  
+
   test('should return 200 and orderId', async () => {
     const filePath = path.join(__dirname, '../assets/products.csv');
     const res = await orderCSVCreateRequest(filePath, orderData, token);
@@ -382,7 +382,7 @@ describe('POST /v1/order/create/csv', () => {
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
-  })
+  });
 
   test('invalid entries: should return 400 and error message', async () => {
     const filePath = path.join(__dirname, '../assets/invalidEntries.csv');
@@ -393,7 +393,7 @@ describe('POST /v1/order/create/csv', () => {
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
-  })
+  });
 
   test('should return 401 and error message', async () => {
     const filePath = path.join(__dirname, '../assets/products.csv');
@@ -402,8 +402,8 @@ describe('POST /v1/order/create/csv', () => {
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty('error');
     expect(typeof res.body.error).toBe('string');
-  })
-})
+  });
+});
 
 describe('GET /v1/order/{orderId}', () => {
   let orderId;
@@ -484,7 +484,7 @@ describe('DELETE /v1/order/{orderId}', () => {
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
-  })
+  });
 
   test('Invalid token, return 401', async () => {
     const res = await orderDeleteRequest(orderId, 'InvalidTokenGiven');

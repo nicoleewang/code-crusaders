@@ -1,7 +1,7 @@
 import axios from 'axios';
 import config from '../config/test.json';
 import FormData from 'form-data';
-import fs from 'fs'
+import fs from 'fs';
 import supabase from '../config/db.js';
 import createHttpError from 'http-errors';
 
@@ -20,7 +20,7 @@ export const requestHelper = async (method, path, payload = {}, token = '', file
 
       const headers = {
         ...formData.getHeaders(),
-        'Authorization': token ? `Bearer ${token}` : '',
+        Authorization: token ? `Bearer ${token}` : '',
       };
 
       // Send the POST request with the form data (for file upload)
@@ -45,7 +45,7 @@ export const requestHelper = async (method, path, payload = {}, token = '', file
       url: `${SERVER_URL}${path}`,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '',
+        Authorization: token ? `Bearer ${token}` : '',
       },
       timeout: TIMEOUT_MS,
       ...(method.toUpperCase() === 'GET' || method.toUpperCase() === 'DELETE'
@@ -100,7 +100,7 @@ export const getUserDetailsRequest = async (token) =>
   requestHelper('GET', '/v1/user/details', {}, token);
 
 export const orderCSVCreateRequest = async (filePath, orderData, token) =>
-  requestHelper('POST', '/v1/order/create/csv', orderData, token, filePath)
+  requestHelper('POST', '/v1/order/create/csv', orderData, token, filePath);
 
 export const getOrderFromOrderIdRequest = (orderId, token) => {
   return requestHelper('GET', `/v1/order/${orderId}`, {}, token);

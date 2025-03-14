@@ -2,7 +2,7 @@ import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
 import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId, orderDelete } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
-import multer from 'multer'
+import multer from 'multer';
 import { validateCSV } from './helpers.js';
 
 const router = express.Router();
@@ -62,14 +62,13 @@ router.post('/create/csv', upload.single('file'), authMiddleware, async (req, re
     const jsonData = JSON.parse(req.body.json);
     const csvContent = req.file.buffer.toString('utf-8');
 
-    const validation = validateCSV(csvContent)
+    const validation = validateCSV(csvContent);
     if (!validation.valid) {
       return res.status(400).json({ error: validation.error });
     }
 
     const response = await orderFormCreate(jsonData, csvContent);
     res.status(200).json(response);
-
   } catch (error) {
     console.error('Error processing CSV upload:', error);
     res.status(500).json({ error: 'Internal Server Error' });
