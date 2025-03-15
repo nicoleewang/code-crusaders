@@ -126,24 +126,22 @@ const parseProperties = (propertiesStr) => {
 };
 
 /**
- * inserts products from an order document into the database
+ * Inserts products from an order document into the database.
+ *
  * @param {object} orderData - order document data as a JSON object
  * @param {integer} orderId - orderId of the order associated with the products
  */
 const insertProductIntoDB = async (orderData, orderId) => {
   const productInsertPromises = orderData.orderLines.map(async (line) => {
-    const productId = line.lineItem.item.itemId;
-
     // Insert product into the database
-    const { error: productError } = await supabase
+    const { data: productData, error: productError } = await supabase
       .from('product')
       .upsert([{
-        productId,
-        sellerItemId: orderData.seller.sellerId,
+        sellerItemId: line.lineItem.item.itemId,
         cost: line.lineItem.price,
         description: line.lineItem.item.description,
         name: line.lineItem.item.name,
-      }]);
+      }]).select();
 
     if (productError) {
       throw createHttpError(500, `Failed to insert product: ${productError.message}`);
@@ -154,7 +152,7 @@ const insertProductIntoDB = async (orderData, orderId) => {
       .from('registeredOrderProduct')
       .insert([{
         orderId,
-        productId,
+        productId: productData[0].productId,
         quantity: line.lineItem.quantity,
       }]);
 
