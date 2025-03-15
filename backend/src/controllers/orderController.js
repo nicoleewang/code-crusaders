@@ -573,3 +573,45 @@ export const getOrderFromOrderId = async (orderId) => {
 
   return order.xml;
 };
+
+/**
+ * Retries user information associated with a given email.
+ *
+ * @param {string} email - The email of the user to get orders from.
+ * @returns {object} - An object containing the array of XML documents (`ublOrderDocuments`).
+ */
+export const orderList = async (email) => {
+  try {
+    // find order ids for user
+    const { data: orders, error: findError } = await supabase
+      .from('registeredOrder')
+      .select('*')
+      .eq('creator', email);
+
+    if (findError) {
+      throw createHttpError(500, 'Database error while fetching registered orders');
+    }
+
+    const orderIds = orders.map(order => order.orderId);
+
+    // fetch XML data from the order table using the collected order IDs
+    const { data: orderDetails, error: orderError } = await supabase
+      .from('order')
+      .select('xml')
+      .in('orderId', orderIds);
+
+    if (orderError) {
+      throw createHttpError(500, 'Database error while fetching order details');
+    }
+
+    const ublOrderDocuments = orderDetails.map(order => order.xml).filter(Boolean);
+
+    return { ublOrderDocuments };
+
+  } catch (error) {
+    if (!error.status) {
+      throw createHttpError(500, 'Unexpected server error' + error);
+    }
+    throw error; 
+  }
+};

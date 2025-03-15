@@ -6,6 +6,7 @@ import {
   orderFormCreateRequest,
   orderFormUpdateRequest,
   registerUserRequest,
+  orderListRequest,
   orderDeleteRequest,
 } from '../wrapper';
 import supabase from '../../config/db.js';
@@ -356,6 +357,28 @@ describe('POST /v1/order/create/bulk', () => {
     expect(res.statusCode).toBe(401);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
+  });
+});
+
+describe('GET /v1/order/list route', () => {
+  test('success, returns 200 and array of orders', async () => {   
+    await orderFormCreateRequest(validParams, token);
+    
+    const res = await orderListRequest(token);
+    const body = res.body;
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toHaveProperty('ublOrderDocuments');
+    expect(Array.isArray(body.ublOrderDocuments)).toBe(true);
+    expect(body.ublOrderDocuments.length).toBeGreaterThan(0);
+  });
+
+  test('error, invalid token', async () => {
+    const res = await orderListRequest('invalidToken');
+    const body = res.body;
+
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error', 'Invalid token');
   });
 });
 

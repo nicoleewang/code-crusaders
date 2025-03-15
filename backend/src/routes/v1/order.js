@@ -1,6 +1,13 @@
 import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { orderFormCreate, orderFormUpdate, isOrderIdValid, getOrderFromOrderId, orderDelete } from '../../controllers/orderController.js';
+import {
+  orderFormCreate,
+  orderFormUpdate,
+  isOrderIdValid,
+  getOrderFromOrderId,
+  orderDelete,
+  orderList
+} from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 import multer from 'multer';
 import { validateCSV } from './helpers.js';
@@ -114,9 +121,18 @@ router.delete('/received/:orderId', authMiddleware, (req, res) => {
 // *************** GETTING ORDERS *************** //
 
 // GET /v1/order/list
-router.get('/list', authMiddleware, (req, res) => {
-  // replace the following with actual logic
-  res.json({ message: 'Order list fetched successfully' });
+router.get('/list', authMiddleware, async (req, res) => {
+  try {
+    const response = await orderList(req.user.email);
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+    } else {
+      // unknown error
+      res.status(500).json({ error: 'Unexpected server error' });
+    }
+  }
 });
 
 // GET /v1/order/{orderId}
