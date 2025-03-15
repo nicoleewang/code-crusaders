@@ -570,19 +570,13 @@ export const getOrderFromOrderId = async (orderId) => {
   return order.xml;
 };
 
-export const orderList = async (token) => {
+export const orderList = async (email) => {
   try {
-    // authenticate user
-    const { data: userData, error: authError } = await supabase.auth.getUser(token);
-    if (authError) {
-      throw createHttpError(401, 'Unauthorized');
-    }
-
     // find order ids for user
     const { data: orders, error: findError } = await supabase
       .from('registeredOrder')
-      .select('*, registeredOrderProduct(*, product(*))')
-      .eq('creator', userData.user.email); 
+      .select('*')
+      .eq('creator', email);
 
     if (findError) {
       throw createHttpError(500, 'Database error while fetching registered orders');
@@ -594,7 +588,7 @@ export const orderList = async (token) => {
     const { data: orderDetails, error: orderError } = await supabase
       .from('order')
       .select('xml')
-      .in('orderid', orderIds);
+      .in('orderId', orderIds);
 
     if (orderError) {
       throw createHttpError(500, 'Database error while fetching order details');

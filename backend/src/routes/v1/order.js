@@ -122,9 +122,10 @@ router.delete('/received/:orderId', authMiddleware, (req, res) => {
 // *************** GETTING ORDERS *************** //
 
 // GET /v1/order/list
-router.get('/list', authMiddleware, (req, res) => {
+router.get('/list', authMiddleware, async (req, res) => {
+  
   try {
-    const response = orderList();
+    const response = await orderList(req.user.email);
     res.status(200).json(response);
   } catch (error) {
     if (error.status) {
