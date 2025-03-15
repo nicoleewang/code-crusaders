@@ -586,7 +586,7 @@ export const orderList = async (email) => {
       throw createHttpError(500, 'Database error while fetching registered orders');
     }
 
-    const orderIds = orders.map(order => order.orderid);
+    const orderIds = orders.map(order => order.orderId);
 
     // fetch XML data from the order table using the collected order IDs
     const { data: orderDetails, error: orderError } = await supabase
@@ -599,9 +599,6 @@ export const orderList = async (email) => {
     }
 
     const ublOrderDocuments = orderDetails.map(order => order.xml).filter(Boolean);
-
-    console.log(ublOrderDocuments);
-    
 
     return { ublOrderDocuments };
 

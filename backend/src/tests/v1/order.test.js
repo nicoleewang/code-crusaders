@@ -361,14 +361,16 @@ describe('POST /v1/order/create/bulk', () => {
 });
 
 describe('GET /v1/order/list route', () => {
-  test.only('success, returns 200 and array of orders', async () => {
+  test('success, returns 200 and array of orders', async () => {   
+    await orderFormCreateRequest(validParams, token);
+    
     const res = await orderListRequest(token);
     const body = res.body;
 
     expect(res.statusCode).toBe(200);
     expect(body).toHaveProperty('ublOrderDocuments');
     expect(Array.isArray(body.ublOrderDocuments)).toBe(true);
-    // expect(body.ublOrderDocuments.length).toBeGreaterThan(0);
+    expect(body.ublOrderDocuments.length).toBeGreaterThan(0);
   });
 
   test('error, invalid token', async () => {
