@@ -5,7 +5,8 @@ import {
   loginUser,
   logoutUser,
   getUserDetails,
-  sendUserResetCode
+  sendUserResetCode,
+  resetPassword
 } from '../../controllers/userController.js';
 import cookieParser from 'cookie-parser';
 
@@ -77,7 +78,6 @@ router.post('/logout', authMiddleware, async (req, res) => {
 // POST /v1/user/forgot
 router.post('/forgot', async (req, res) => {
   try {
-    await console.log(req.body.email);
     const response = await sendUserResetCode(req.body.email);
     res.status(200).json(response);
   } catch (error) {
@@ -90,9 +90,19 @@ router.post('/forgot', async (req, res) => {
 });
 
 // POST /v1/user/reset
-router.post('/reset', (req, res) => {
-  // replace the following with actual logic
-  res.json({ message: 'Password reset successfully' });
+router.post('/reset', async (req, res) => {
+  const { email, resetCode, newPassword } = req.body;
+
+  try {
+    const response = await resetPassword(email, resetCode, newPassword);
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
 });
 
 // *************** USER INFORMATION *************** //
@@ -100,7 +110,6 @@ router.post('/reset', (req, res) => {
 // GET /v1/user/details
 router.get('/details', authMiddleware, async (req, res) => {
   try {
-    await console.log(req.user);
     const response = await getUserDetails(req.user.email);
     res.status(200).json(response);
   } catch (error) {
