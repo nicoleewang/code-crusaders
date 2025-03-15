@@ -268,12 +268,12 @@ describe('PUT /v1/order/{orderId}', () => {
 
     const { data: preUpdateData } = await supabase
       .from('registeredOrderProduct')
-      .select('product(productId, description)')
+      .select('product(sellerItemId, description)')
       .eq('orderId', orderId)
-      .order('product(productId)');
+      .order('product(sellerItemId)');
     expect(preUpdateData).toEqual([
-      { product: { productId: 45252, description: 'Red paint' } },
-      { product: { productId: 54223, description: 'Very good pencils for red paint.' } }]);
+      { product: { sellerItemId: 45252, description: 'Red paint' } },
+      { product: { sellerItemId: 54223, description: 'Very good pencils for red paint.' } }]);
 
     const res = await orderFormUpdateRequest(orderId, newParams, token);
     const body = res.body;
@@ -285,12 +285,12 @@ describe('PUT /v1/order/{orderId}', () => {
 
     const { data: postUpdateData } = await supabase
       .from('registeredOrderProduct')
-      .select('product(productId, description)')
+      .select('product(sellerItemId, description)')
       .eq('orderId', orderId)
-      .order('product(productId)');
+      .order('product(sellerItemId)');
     expect(postUpdateData).toEqual([
-      { product: { productId: 54223, description: 'Rainbow pencils' } },
-      { product: { productId: 10000000, description: 'Yellow paint' } }]);
+      { product: { sellerItemId: 54223, description: 'Rainbow pencils' } },
+      { product: { sellerItemId: 10000000, description: 'Yellow paint' } }]);
   });
 
   test('Invalid order data given, should return 400 and an error message', async () => {
