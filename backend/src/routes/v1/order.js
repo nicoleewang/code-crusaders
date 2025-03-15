@@ -17,7 +17,6 @@ router.post('/create/form', authMiddleware, async (req, res) => {
   try {
     // validate request body
     const { error } = orderSchema.validate(req.body);
-
     if (error) {
       return res.status(400).json({ error: `Validation Error: ${error.message}` });
     }
