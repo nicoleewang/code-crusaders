@@ -23,7 +23,7 @@ router.post('/create/form', authMiddleware, async (req, res) => {
     }
 
     // get response from controller
-    const response = await orderFormCreate(req.body);
+    const response = await orderFormCreate(req.user.email, req.body);
 
     // send response
     res.status(200).json(response);
@@ -45,7 +45,7 @@ router.post('/create/bulk', authMiddleware, async (req, res) => {
         if (error) {
           return res.status(400).json({ error: `Validation Error: ${error.message}` });
         } else {
-          const response = await orderFormCreate(order);
+          const response = await orderFormCreate(req.user.email, order);
           orderIds.push(response.orderId);
         }
       }
@@ -67,7 +67,7 @@ router.post('/create/csv', upload.single('file'), authMiddleware, async (req, re
       return res.status(400).json({ error: validation.error });
     }
 
-    const response = await orderFormCreate(jsonData, csvContent);
+    const response = await orderFormCreate(req.user.email, jsonData, csvContent);
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -162,7 +162,7 @@ router.put('/:orderId', authMiddleware, async (req, res) => {
     }
 
     // get response from controller
-    const response = await orderFormUpdate(orderId, req.body);
+    const response = await orderFormUpdate(req.user.email, orderId, req.body);
 
     // send response
     res.status(200).json(response);

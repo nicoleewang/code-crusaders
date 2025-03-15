@@ -3,12 +3,15 @@ import supabase from '../config/db.js';
 import { create } from 'xmlbuilder2';
 
 /**
+ * Given orderData which may include the orderLines as csv data, this route inserts the order into
+ * the databse, also indicating that the order belongs to userEmail.
  *
+ * @param {string} userEmail - The email of the user creating the order xml document.
  * @param {object} orderData - order document data
  * @param {string} csv - csv product info
  * @returns {orderId} orderId of the order document generated
  */
-export const orderFormCreate = async (orderData, csv) => {
+export const orderFormCreate = async (userEmail, orderData, csv) => {
   try {
     // Generate a unique order ID
     const orderId = Math.floor(Math.random() * 1000000);
@@ -18,7 +21,7 @@ export const orderFormCreate = async (orderData, csv) => {
       orderData.orderLines = [...parsedOrderData.orderLines];
     }
 
-    await insertOrderIntoDatabase(orderId, orderData);
+    await insertOrderIntoDatabase(userEmail, orderId, orderData);
 
     return { orderId: orderId };
   } catch (error) {
@@ -27,12 +30,14 @@ export const orderFormCreate = async (orderData, csv) => {
 };
 
 /**
- * inserts a new order into the database.
- * also inserts the products within the order into the database
+ * Inserts a new order into the database, and inserts the products within the order into the database.
+ * The relationship between users and registeredOrders is also implemented.
+ *
+ * @param {string} userEmail - The email of the user creating the order xml document.
  * @param {integer} orderId - orderId of the new order document
  * @param {object} orderData - order document data as a JSON object
  */
-const insertOrderIntoDatabase = async (orderId, orderData) => {
+const insertOrderIntoDatabase = async (userEmail, orderId, orderData) => {
   const { xml, totalCost } = generateXML(orderData, orderId);
 
   // Insert order into the database
@@ -47,7 +52,7 @@ const insertOrderIntoDatabase = async (orderId, orderData) => {
   // Insert registered order into the database
   const { error: registeredOrderError } = await supabase
     .from('registeredOrder')
-    .insert([{ orderId, cost: totalCost }]);
+    .insert([{ orderId, cost: totalCost, creator: userEmail }]);
 
   if (registeredOrderError) {
     throw createHttpError(500, `Failed to insert registered order: ${registeredOrderError.message}`);
@@ -57,7 +62,8 @@ const insertOrderIntoDatabase = async (orderId, orderData) => {
 };
 
 /**
- * parses csv order lines data into a json object
+ * Parses csv order lines data into a json object.
+ *
  * @param {string} csv - csv order lines info
  * @returns {object} an object containing an array of `orderLines`, where each order line contains product info
  */
@@ -99,7 +105,7 @@ const parseCSVToOrderData = (csv) => {
 };
 
 /**
- * parses a string containing key-value pairs in the form of "key: value" into an object.
+ * Parses a string containing key-value pairs in the form of "key: value" into an object.
  *
  * @param {string} propertiesStr - a string containing key-value pairs, separated by semicolons, where each pair is in the form of "key: value".
  * @returns {object} an object where the keys are the property names and the values are the corresponding property values from the input string.
@@ -506,10 +512,10 @@ export const isOrderIdValid = async (orderId) => {
   * @param {object} orderData - contains the order details which have been validated by the orderSchema
   * @returns {orderId: integer} - returns orderId of updated order
 */
-export const orderFormUpdate = async (orderId, orderData) => {
+export const orderFormUpdate = async (userEmail, orderId, orderData) => {
   try {
     await deleteOrderFromDatabase(orderId);
-    await insertOrderIntoDatabase(orderId, orderData);
+    await insertOrderIntoDatabase(userEmail, orderId, orderData);
 
     return { orderId };
   } catch (error) {
