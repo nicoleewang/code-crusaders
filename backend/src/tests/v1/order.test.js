@@ -361,7 +361,7 @@ describe('POST /v1/order/create/bulk', () => {
 });
 
 describe('GET /v1/order/list route', () => {
-  test('success, returns 200 and array of orders', async () => {
+  test.only('success, returns 200 and array of orders', async () => {
     const res = await orderListRequest(token);
     const body = res.body;
 

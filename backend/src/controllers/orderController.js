@@ -596,6 +596,9 @@ export const orderList = async (email) => {
 
     const ublOrderDocuments = orderDetails.map(order => order.xml).filter(Boolean);
 
+    console.log(ublOrderDocuments);
+    
+
     return { ublOrderDocuments };
 
   } catch (error) {
