@@ -1,12 +1,12 @@
 import express from 'express';
 import authMiddleware from '../../middleware/authMiddleware.js';
-import { 
-  orderFormCreate, 
-  orderFormUpdate, 
-  isOrderIdValid, 
-  getOrderFromOrderId, 
+import {
+  orderFormCreate,
+  orderFormUpdate,
+  isOrderIdValid,
+  getOrderFromOrderId,
   orderDelete,
-  orderList 
+  orderList
 } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 import multer from 'multer';
@@ -122,17 +122,16 @@ router.delete('/received/:orderId', authMiddleware, (req, res) => {
 
 // GET /v1/order/list
 router.get('/list', authMiddleware, async (req, res) => {
-  
   try {
     const response = await orderList(req.user.email);
     res.status(200).json(response);
   } catch (error) {
     if (error.status) {
       res.status(error.status).json({ error: error.message });
-	  } else {
+    } else {
       // unknown error
       res.status(500).json({ error: 'Unexpected server error' });
-	  }
+    }
   }
 });
 
