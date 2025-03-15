@@ -574,6 +574,12 @@ export const getOrderFromOrderId = async (orderId) => {
   return order.xml;
 };
 
+/**
+ * Retries user information associated with a given email.
+ *
+ * @param {string} email - The email of the user to get orders from.
+ * @returns {object} - An object containing the array of XML documents (`ublOrderDocuments`).
+ */
 export const orderList = async (email) => {
   try {
     // find order ids for user
