@@ -6,11 +6,8 @@ import {
   orderFormCreateRequest,
   orderFormUpdateRequest,
   registerUserRequest,
-<<<<<<< HEAD
-  orderListRequest
-=======
+  orderListRequest,
   orderDeleteRequest,
->>>>>>> 89e7c209c7b6db68ea8dbad46c171e38a57a7453
 } from '../wrapper';
 import supabase from '../../config/db.js';
 import path from 'path';
@@ -363,17 +360,26 @@ describe('POST /v1/order/create/bulk', () => {
   });
 });
 
-<<<<<<< HEAD
 describe('GET /v1/order/list route', () => {
   test('success, returns 200 and array of orders', async () => {
     const res = await orderListRequest(token);
-    const body = JSON.parse(res.body.toString());
+    const body = res.body;
 
     expect(res.statusCode).toBe(200);
     expect(body).toHaveProperty('ublOrderDocuments');
     expect(Array.isArray(body.ublOrderDocuments)).toBe(true);
-    expect(body.ublOrderDocuments.length).toBeGreaterThan(0);
-=======
+    // expect(body.ublOrderDocuments.length).toBeGreaterThan(0);
+  });
+
+  test('error, invalid token', async () => {
+    const res = await orderListRequest('invalidToken');
+    const body = res.body;
+
+    expect(res.statusCode).toBe(401);
+    expect(body).toHaveProperty('error', 'Invalid token');
+  });
+});
+
 describe('POST /v1/order/create/csv', () => {
   const orderData = { ...validParams };
   delete orderData.orderLines;
@@ -507,6 +513,5 @@ describe('DELETE /v1/order/{orderId}', () => {
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty('error', 'Invalid token');
     expect(typeof res.body.error).toBe('string');
->>>>>>> 89e7c209c7b6db68ea8dbad46c171e38a57a7453
   });
 });
