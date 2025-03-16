@@ -19,7 +19,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // *************** CREATE ORDERS *************** //
 
-// POST /v1/order/create/form
+// POST /v1/order/create/form AUTHENTICATED
 router.post('/create/form', authMiddleware, async (req, res) => {
   try {
     // validate request body
