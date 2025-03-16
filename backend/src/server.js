@@ -28,8 +28,3 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 app.get('/', (req,res)=> {
     res.redirect('/api-docs');
 });
-
-// test
-app.get('/v1/user/register', (req, res) => {
-    res.send('User register page');
-});

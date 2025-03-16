@@ -163,6 +163,12 @@ const insertProductIntoDB = async (orderData, orderId) => {
   await Promise.all(productInsertPromises);
 };
 
+/**
+ * Generates an XML representation of an order document.
+ *
+ * @param {object} orderData - The order document data as a JSON object
+ * @param {integer} orderId - The unique identifier for the order
+ */
 const generateXML = (orderData, orderId) => {
   const now = new Date();
   const issueDate = now.toISOString().split('T')[0];
