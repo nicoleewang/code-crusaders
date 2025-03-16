@@ -117,3 +117,6 @@ export const sendUserResetCodeRequest = async (email) =>
 
 export const resetPasswordRequest = async (email, resetCode, newPassword) =>
   requestHelper('POST', '/v1/user/reset', { email, resetCode, newPassword });
+
+export const orderFormCreateNonAuthRequest = async (jsonOrderForm) => 
+  requestHelper('POST', '/v1/order/create/form-guest', jsonOrderForm);

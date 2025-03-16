@@ -8,6 +8,7 @@ import {
   registerUserRequest,
   orderListRequest,
   orderDeleteRequest,
+  orderFormCreateNonAuthRequest,
 } from '../wrapper';
 import supabase from '../../config/db.js';
 import path from 'path';
@@ -517,3 +518,35 @@ describe('DELETE /v1/order/{orderId}', () => {
     expect(typeof res.body.error).toBe('string');
   });
 });
+
+describe('POST /v1/order/create/form-create', () => {
+  test('should return 200, an xml string and orderId', async () => {
+    const res = await orderFormCreateNonAuthRequest(validParams)
+    const body = res.body;
+
+    expect(body).toHaveProperty('orderId');
+    expect(typeof body.orderId).toBe('number');
+    expect(Number.isInteger(body.orderId)).toBe(true);
+
+    expect(body).toHaveProperty('xml');
+    expect(typeof body.xml).toBe('string');
+
+    // validate that it's valid xml
+    const parser = new XMLParser();
+    expect(() => parser.parse(body.xml)).not.toThrow();
+    const parsedXML = parser.parse(body.xml);
+    expect(parsedXML.Order).toBeDefined();
+  });
+
+  test('should return 400 and an error message', async () => {
+    const invalidParams = { ...validParams };
+    delete invalidParams.order;
+
+    const res = await orderFormCreateNonAuthRequest(invalidParams)
+    const body = res.body;
+
+    expect(res.statusCode).toBe(400);
+    expect(body).toHaveProperty('error');
+    expect(typeof body.error).toBe('string');
+  });
+})

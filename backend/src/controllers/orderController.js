@@ -615,3 +615,25 @@ export const orderList = async (email) => {
     throw error; 
   }
 };
+
+export const orderFormCreateGuest = async (orderData) => {
+  try {
+    // Generate a unique order ID
+    const orderId = Math.floor(Math.random() * 1000000);
+
+    const { xml } = generateXML(orderData, orderId);
+
+    // Insert order into the database
+    const { error: orderError } = await supabase
+      .from('order')
+      .insert([{ orderId, xml }]);
+
+    if (orderError) {
+      throw createHttpError(500, `Failed to insert order: ${orderError.message}`);
+    }
+
+    return { orderId: orderId, xml: xml };
+  } catch (error) {
+    throw createHttpError(500, 'Failed to create order. Please try again.' + error);
+  }
+}

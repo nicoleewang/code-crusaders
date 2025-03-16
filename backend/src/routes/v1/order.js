@@ -6,7 +6,8 @@ import {
   isOrderIdValid,
   getOrderFromOrderId,
   orderDelete,
-  orderList
+  orderList,
+  orderFormCreateGuest
 } from '../../controllers/orderController.js';
 import orderSchema from '../../schemas/orderSchema.js';
 import multer from 'multer';
@@ -35,6 +36,25 @@ router.post('/create/form', authMiddleware, async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST /v1/order/create/form-guest UNAUTHENTICATED
+router.post('/create/form-guest', async (req, res) => {
+  try {
+    // validate request body
+    const { error } = orderSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: `Validation Error: ${error.message}` });
+    }
+
+    // get response from controller
+    const response = await orderFormCreateGuest(req.body);
+
+    // send response
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' + error });
   }
 });
 
