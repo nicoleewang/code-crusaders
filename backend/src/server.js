@@ -21,3 +21,15 @@ app.use('/v1', v1Routes);
 
 const PORT = process.env.PORT || 5558;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// server stuff
+
+//redirect to swagger
+app.get('/', (req,res)=> {
+    res.redirect('/api-docs');
+});
+
+// test
+app.get('/v1/user/register', (req, res) => {
+    res.send('User register page');
+});
