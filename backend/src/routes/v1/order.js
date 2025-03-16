@@ -19,8 +19,26 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // *************** CREATE ORDERS *************** //
 
-// POST /v1/order/create/form
+// POST /v1/order/create/form AUTHENTICATED
 router.post('/create/form', authMiddleware, async (req, res) => {
+  try {
+    // validate request body
+    const { error } = orderSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: `Validation Error: ${error.message}` });
+    }
+
+    // get response from controller
+    const response = await orderFormCreate(req.user.email, req.body);
+
+    // send response
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.post('/create/form/guest', authMiddleware, async (req, res) => {
   try {
     // validate request body
     const { error } = orderSchema.validate(req.body);
@@ -122,6 +140,20 @@ router.delete('/received/:orderId', authMiddleware, (req, res) => {
 
 // GET /v1/order/list
 router.get('/list', authMiddleware, async (req, res) => {
+  try {
+    const response = await orderList(req.user.email);
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+    } else {
+      // unknown error
+      res.status(500).json({ error: 'Unexpected server error' });
+    }
+  }
+});
+
+router.get('/list/guest', authMiddleware, async (req, res) => {
   try {
     const response = await orderList(req.user.email);
     res.status(200).json(response);
