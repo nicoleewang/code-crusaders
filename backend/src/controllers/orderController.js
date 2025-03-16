@@ -613,11 +613,10 @@ export const orderList = async (email) => {
     const ublOrderDocuments = orderDetails.map(order => order.xml).filter(Boolean);
 
     return { ublOrderDocuments };
-
   } catch (error) {
     if (!error.status) {
       throw createHttpError(500, 'Unexpected server error' + error);
     }
-    throw error; 
+    throw error;
   }
 };

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 /**
  * Middleware to verify the token and attach user info to the request.
- * 
+ *
  * @param {object} req - The request object, contains the headers and other information related to the HTTP request
  * @param {object} res - The response object used to send back the response to the client
  * @param {function} next - A function to pass control to the next middleware or route handler in the stack.

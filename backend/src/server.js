@@ -24,7 +24,7 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // server stuff
 
-//redirect to swagger
-app.get('/', (req,res)=> {
-    res.redirect('/api-docs');
+// redirect to swagger
+app.get('/', (req, res) => {
+  res.redirect('/api-docs');
 });
