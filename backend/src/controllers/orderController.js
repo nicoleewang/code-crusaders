@@ -163,6 +163,12 @@ const insertProductIntoDB = async (orderData, orderId) => {
   await Promise.all(productInsertPromises);
 };
 
+/**
+ * Generates an XML representation of an order document.
+ *
+ * @param {object} orderData - The order document data as a JSON object
+ * @param {integer} orderId - The unique identifier for the order
+ */
 const generateXML = (orderData, orderId) => {
   const now = new Date();
   const issueDate = now.toISOString().split('T')[0];
@@ -607,12 +613,11 @@ export const orderList = async (email) => {
     const ublOrderDocuments = orderDetails.map(order => order.xml).filter(Boolean);
 
     return { ublOrderDocuments };
-
   } catch (error) {
     if (!error.status) {
       throw createHttpError(500, 'Unexpected server error' + error);
     }
-    throw error; 
+    throw error;
   }
 };
 
