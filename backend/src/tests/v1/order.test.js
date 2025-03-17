@@ -362,9 +362,9 @@ describe('POST /v1/order/create/bulk', () => {
 });
 
 describe('GET /v1/order/list route', () => {
-  test('success, returns 200 and array of orders', async () => {   
+  test('success, returns 200 and array of orders', async () => {
     await orderFormCreateRequest(validParams, token);
-    
+
     const res = await orderListRequest(token);
     const body = res.body;
 
@@ -521,7 +521,7 @@ describe('DELETE /v1/order/{orderId}', () => {
 
 describe('POST /v1/order/create/form-create', () => {
   test('should return 200, an xml string and orderId', async () => {
-    const res = await orderFormCreateNonAuthRequest(validParams)
+    const res = await orderFormCreateNonAuthRequest(validParams);
     const body = res.body;
 
     expect(body).toHaveProperty('orderId');
@@ -542,11 +542,11 @@ describe('POST /v1/order/create/form-create', () => {
     const invalidParams = { ...validParams };
     delete invalidParams.order;
 
-    const res = await orderFormCreateNonAuthRequest(invalidParams)
+    const res = await orderFormCreateNonAuthRequest(invalidParams);
     const body = res.body;
 
     expect(res.statusCode).toBe(400);
     expect(body).toHaveProperty('error');
     expect(typeof body.error).toBe('string');
   });
-})
+});

@@ -99,7 +99,7 @@ export const orderBulkCreateRequest = async (jsonOrderList, token) =>
 export const getUserDetailsRequest = async (token) =>
   requestHelper('GET', '/v1/user/details', {}, token);
 
-export const orderListRequest = (token) => 
+export const orderListRequest = (token) =>
   requestHelper('GET', '/v1/order/list', {}, token);
 
 export const orderCSVCreateRequest = async (filePath, orderData, token) =>
@@ -118,5 +118,5 @@ export const sendUserResetCodeRequest = async (email) =>
 export const resetPasswordRequest = async (email, resetCode, newPassword) =>
   requestHelper('POST', '/v1/user/reset', { email, resetCode, newPassword });
 
-export const orderFormCreateNonAuthRequest = async (jsonOrderForm) => 
+export const orderFormCreateNonAuthRequest = async (jsonOrderForm) =>
   requestHelper('POST', '/v1/order/create/form-guest', jsonOrderForm);

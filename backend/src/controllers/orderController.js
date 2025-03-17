@@ -555,7 +555,7 @@ export const orderDelete = async (orderId) => {
   }
 };
 
-/*
+/**
  * returns an xml order document from the given orderId
  * @param {integer} orderId - orderId of the order being retrieved
  * @returns {string} - xml document as a string
@@ -607,15 +607,19 @@ export const orderList = async (email) => {
     const ublOrderDocuments = orderDetails.map(order => order.xml).filter(Boolean);
 
     return { ublOrderDocuments };
-
   } catch (error) {
     if (!error.status) {
       throw createHttpError(500, 'Unexpected server error' + error);
     }
-    throw error; 
+    throw error;
   }
 };
 
+/**
+ * Creates an order document, stores it and returns it for an unauthenticated user
+ * @param {object} orderData - order document data
+ * @returns {orderId: integer, xml: string} - orderId of new order, xml string of the new order
+ */
 export const orderFormCreateGuest = async (orderData) => {
   try {
     // Generate a unique order ID
@@ -636,4 +640,4 @@ export const orderFormCreateGuest = async (orderData) => {
   } catch (error) {
     throw createHttpError(500, 'Failed to create order. Please try again.' + error);
   }
-}
+};
