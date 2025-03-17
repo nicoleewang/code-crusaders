@@ -29,9 +29,25 @@ paths:
                     type: integer
                     example: 12345
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Validation error: {specific error message}"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
   
   /v1/order/create/form-guest:
     post:
@@ -59,13 +75,17 @@ paths:
                   xml:
                     type: string
                     description: XML representation of the order
-                    example: |
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <Order>
-                      ... 
-                    </Order>
+                    example: "xml string"
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Validation error: {specific error message}"
 
   /v1/order/create/bulk:
     post:
@@ -87,7 +107,7 @@ paths:
               required:
                 - orders
       responses:
-        '200':
+        200:
           description: Orders created successfully.
           content:
             application/json:
@@ -100,9 +120,25 @@ paths:
                       type: integer
                       example: 1242
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Validation error: {specific error message}"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
   /v1/order/create/csv:
     post:
@@ -124,7 +160,7 @@ paths:
                   type: string
                   description: JSON payload with additional order information.
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -135,9 +171,25 @@ paths:
                     type: integer
                     example: 12345
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "{specific validation.error message}"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
   /v1/order/list:
     get:
@@ -155,10 +207,16 @@ paths:
                 items:
                   type: string
                 example: [ "order1", "order2", "order3" ]
-        400:
-          $ref: "#/components/responses/BadRequestResponse"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
   /v1/order/{orderId}:
     get:
@@ -182,9 +240,25 @@ paths:
                 type: string
                 example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Order xmlns=\"urn:oasis:names:specification:ubl:schema:xsd:Order-2\">\n  <OrderID>12345</OrderID>\n  <OrderDate>2025-03-10</OrderDate>\n  <!-- other XML content -->\n</Order>"
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid orderId given"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
   
     put:
       summary: Updates the information of an order
@@ -212,9 +286,25 @@ paths:
               schema:
                 type: object
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Validation error: {specific error message}"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
     delete:
       summary: Deletes a UBL Order Document
@@ -236,10 +326,25 @@ paths:
               schema:
                 type: object
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid orderId given"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
-
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
   /v1/user/register:
     post:
@@ -278,9 +383,15 @@ paths:
                     type: string
                     example: "1t2nb34"
         400:
-          $ref: "#/components/responses/BadRequestResponse"
-        401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "{specific error message}"
 
   /v1/user/login:
     post:
@@ -313,9 +424,25 @@ paths:
                     type: string
                     example: "1t2nb34"
         400:
-          $ref: "#/components/responses/BadRequestResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "All fields required"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "{specific error message}"
 
   /v1/user/logout:
     post:
@@ -337,10 +464,16 @@ paths:
             application/json:
               schema:
                 type: object
-        400:
-          $ref: "#/components/responses/BadRequestResponse"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
   /v1/user/statistics:
     get:
@@ -483,33 +616,6 @@ paths:
           $ref: "#/components/responses/BadRequestResponse"
         401:
           $ref: "#/components/responses/UnauthorizedResponse"
-
-  /v1/order/{orderId}/pdf:
-    get:
-      summary: Gets PDF copy of order
-      description: Gets the PDF version of a UBL Order document
-      tags:
-      - Order
-      parameters: 
-        - name: orderId
-          in: path
-          description: Order id to generate a PDF copy
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                example: 
-                  pdfLink: "https://example.com/files/sample.pdf"
-        400:
-          $ref: "#/components/responses/BadRequestResponse"
-        401:
-          $ref: "#/components/responses/UnauthorizedResponse"
   
   /v1/user/details:
     put:
@@ -567,10 +673,16 @@ paths:
                   nameLast:
                     type: string
                     example: "Smith"
-        400:
-          $ref: "#/components/responses/BadRequestResponse"
         401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 
   /v1/user/reset:
     post:
@@ -599,9 +711,25 @@ paths:
               schema:
                 type: object
         400:
-          $ref: "#/components/responses/BadRequestResponse"
-        401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "{specific error message}"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "{specific error message}"
 
   /v1/user/forgot:
     post:
@@ -631,13 +759,20 @@ paths:
                   resetCode:
                     type: string
                     example: "h8d3hf6z"
-        400:
-          $ref: "#/components/responses/BadRequestResponse"
-        401:
-          $ref: "#/components/responses/UnauthorizedResponse"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "{specific error message}"
 
 components:
   responses:
+  # placeholder error responses
     BadRequestResponse:
       description: Client error, bad request
       content:
