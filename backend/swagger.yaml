@@ -7,7 +7,7 @@ info:
 paths:
   /v1/order/create/form:
     post:
-      summary: Creates an order form for a user
+      summary: Creates an order form for an authenticated user
       description: Creates a standardized 2.1 UBL Order document based on user input from a manual form submission
       tags:
       - Order
@@ -32,6 +32,40 @@ paths:
           $ref: "#/components/responses/BadRequestResponse"
         401:
           $ref: "#/components/responses/UnauthorizedResponse"
+  
+  /v1/order/create/form-guest:
+    post:
+      summary: Creates an order form for an unauthenticated guest user
+      description: Allows a guest user to create a standardized 2.1 UBL Order document based on input from a manual form submission.
+      tags:
+        - Order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/formParams'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                    example: 12345
+                  xml:
+                    type: string
+                    description: XML representation of the order
+                    example: |
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <Order>
+                      ... 
+                    </Order>
+        400:
+          $ref: "#/components/responses/BadRequestResponse"
 
   /v1/order/create/bulk:
     post:
