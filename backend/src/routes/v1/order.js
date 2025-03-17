@@ -155,20 +155,6 @@ router.get('/list', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/list/guest', authMiddleware, async (req, res) => {
-  try {
-    const response = await orderList(req.user.email);
-    res.status(200).json(response);
-  } catch (error) {
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
-    } else {
-      // unknown error
-      res.status(500).json({ error: 'Unexpected server error' });
-    }
-  }
-});
-
 // GET /v1/order/{orderId}
 router.get('/:orderId', authMiddleware, async (req, res) => {
   const { orderId } = req.params;
