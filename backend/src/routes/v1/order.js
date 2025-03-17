@@ -58,24 +58,6 @@ router.post('/create/form-guest', async (req, res) => {
   }
 });
 
-router.post('/create/form/guest', authMiddleware, async (req, res) => {
-  try {
-    // validate request body
-    const { error } = orderSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: `Validation Error: ${error.message}` });
-    }
-
-    // get response from controller
-    const response = await orderFormCreate(req.user.email, req.body);
-
-    // send response
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
 // POST /v1/order/create/bulk
 router.post('/create/bulk', authMiddleware, async (req, res) => {
   try {
