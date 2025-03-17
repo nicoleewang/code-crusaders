@@ -75,11 +75,7 @@ paths:
                   xml:
                     type: string
                     description: XML representation of the order
-                    example: |
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <Order>
-                      ... 
-                    </Order>
+                    example: "xml string"
         400:
           description: Bad Request - Validation error
           content:
